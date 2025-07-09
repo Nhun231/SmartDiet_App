@@ -6,7 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator.js';
-
 const Stack = createNativeStackNavigator();
 
 export default function App() {
