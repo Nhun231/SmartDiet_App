@@ -1,146 +1,428 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import React, { useEffect, useState } from 'react';
+import {
+    View,
+    Text,
+    ScrollView,
+    TouchableOpacity,
+    StyleSheet,
+    SafeAreaView,
+    Dimensions,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import Svg, { Path, Circle, Defs, LinearGradient, Stop, Rect, Polyline } from 'react-native-svg';
+import axios from "axios";
+import { LineChart } from 'react-native-chart-kit';
+import { PUBLIC_SERVER_ENDPOINT } from '@env';
 
-export default function PersonalScreen({ navigation }) {
-    const data = {
-        bmi: 17.6,
-        createdAt: '15 tháng 5 - 21:11',
-        height: 160,
-        weight: 45,
-        waterIntake: 2364
+const { width } = Dimensions.get('window');
+
+const BASE_URL = PUBLIC_SERVER_ENDPOINT;
+
+export default function PersonalScreen() {
+    const [waterIntake, setWaterIntake] = useState(2364);
+    const [currentWeight, setCurrentWeight] = useState(55);
+    const [weightHistory, setWeightHistory] = useState([]);
+
+    const incrementWater = () => setWaterIntake((prev) => prev + 250);
+    const decrementWater = () => setWaterIntake((prev) => Math.max(0, prev - 250));
+
+    useEffect(() => {
+        const fetchWeightHistory = async () => {
+            console.log(`${BASE_URL}/customer/calculate/history`);
+            try {
+                const res = await axios.get(`${BASE_URL}/customer/calculate/history`);
+                setWeightHistory(res.data.report);
+            } catch (error) {
+                console.log('Error fetching weight history:', error);
+            }
+        };
+        fetchWeightHistory();
+    }, []);
+
+    const chartData = weightHistory.map(item => ({
+        x: new Date(item.createdAt), // or format as needed
+        y: item.weight
+    }));
+
+    // Prepare data for chart-kit
+    const chartKitData = {
+        labels: chartData.map(d => d.x.toLocaleDateString()), // or format as needed
+        datasets: [
+            {
+                data: chartData.map(d => d.y),
+            },
+        ],
     };
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <SafeAreaView style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <View style={styles.userInfo}>
-                    <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>N</Text>
+                <View style={styles.headerContent}>
+                    <View style={styles.profileAvatar}>
+                        <Ionicons name="person" size={24} color="#10b981" />
                     </View>
-                    <View>
-                        <Text style={styles.userName}>Nguyen Thuy Hang (K18 HL)</Text>
+                    <View style={styles.headerRight}>
+                        <Ionicons name="settings-outline" size={24} color="white" />
+                        <Text style={styles.headerText}>Cài đặt</Text>
                     </View>
                 </View>
             </View>
 
-            {/* BMI Card */}
-            <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>Chỉ số khối cơ thể (BMI)</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('BMREdit')}>
-                        <Icon name="dots-horizontal" size={24} color="#000" />
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.bmiSection}>
-                    <View>
-                        <Text style={styles.bmiLabel}>BMI</Text>
-                        <Text style={styles.bmiValue}>{data.bmi}</Text>
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {/* BMI Section */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Chỉ số khối cơ thể (BMI)</Text>
+                        <Ionicons name="ellipsis-horizontal" size={20} color="#9ca3af" />
                     </View>
-                    <View>
-                        <Text style={styles.bmiDate}><Icon name="clock-outline" size={14} /> {data.createdAt}</Text>
-                        <TouchableOpacity>
-                            <Text style={styles.updateLink}>Cập nhật cân nặng</Text>
-                        </TouchableOpacity>
+
+                    <View style={styles.card}>
+                        <View style={styles.bmiCenter}>
+                            <Text style={styles.bmiLabel}>BMI</Text>
+                            <Text style={styles.bmiValue}>21.8</Text>
+                            <View style={styles.timestampRow}>
+                                <Ionicons name="time-outline" size={16} color="#9ca3af" />
+                                <Text style={styles.timestampText}>5 tháng 7 - 21:09</Text>
+                            </View>
+                            <Text style={styles.updateText}>Cập nhật cần nâng</Text>
+                        </View>
+
+                        <View style={styles.statsRow}>
+                            <View style={styles.statItem}>
+                                <Text style={styles.statValue}>159 cm</Text>
+                                <Text style={styles.statLabel}>Chiều cao</Text>
+                            </View>
+                            <View style={styles.statItem}>
+                                <Text style={styles.statValue}>55 kg</Text>
+                                <Text style={styles.statLabel}>Cân nặng tốt</Text>
+                            </View>
+                        </View>
                     </View>
                 </View>
 
-                <View style={styles.bmiDetails}>
-                    <Text style={styles.detailItem}>{data.height} cm</Text>
-                    <Text style={styles.detailItem}>{data.weight} kg</Text>
-                    <Text style={styles.detailStatus}>Thiếu cân</Text>
-                </View>
-            </View>
+                {/* Water Intake Section */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Bạn nên uống bao nhiều nước</Text>
+                        <Ionicons name="ellipsis-horizontal" size={20} color="#9ca3af" />
+                    </View>
 
-            {/* Water Card */}
-            <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>Bạn nên uống bao nhiêu nước</Text>
-                    <TouchableOpacity>
-                        <Icon name="dots-horizontal" size={24} color="#000" />
-                    </TouchableOpacity>
+                    <View style={styles.card}>
+                        <View style={styles.waterCenter}>
+                            <View style={styles.waterValueRow}>
+                                <Text style={styles.waterValue}>{waterIntake}</Text>
+                                <Text style={styles.waterUnit}>ml</Text>
+                            </View>
+                            <Text style={styles.waterLabel}>Lượng nước bạn cần uống</Text>
+
+                            <View style={styles.waterControls}>
+                                <TouchableOpacity
+                                    style={styles.waterButton}
+                                    onPress={decrementWater}
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons name="remove" size={20} color="#06b6d4" />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.waterButton}
+                                    onPress={incrementWater}
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons name="add" size={20} color="#06b6d4" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        <View style={styles.waterInfo}>
+                            <View style={styles.infoRow}>
+                                <Ionicons name="time-outline" size={16} color="#9ca3af" />
+                                <Text style={styles.infoText}>Lần cuối cùng</Text>
+                            </View>
+                            <View style={styles.infoRow}>
+                                <Ionicons name="notifications-outline" size={16} color="#f59e0b" />
+                                <Text style={[styles.infoText, { color: '#f59e0b' }]}>
+                                    Bật tính năng thông báo
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
                 </View>
 
-                <Text style={styles.waterValue}>{data.waterIntake} ml</Text>
-                <Text style={styles.waterLabel}>Lượng nước bạn cần uống</Text>
+                {/* Goals Section */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Mục tiêu</Text>
+                        <Text style={styles.suggestionText}>(gợi ý) 55.62 kg</Text>
+                    </View>
 
-                <View style={styles.waterControls}>
-                    <TouchableOpacity style={styles.controlButton}>
-                        <Icon name="plus" size={20} color="#333" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.controlButton}>
-                        <Icon name="minus" size={20} color="#333" />
-                    </TouchableOpacity>
+                    <View style={styles.card}>
+                        <View style={styles.goalHeader}>
+                            <Text style={styles.goalTitle}>Cân nặng</Text>
+                            <TouchableOpacity style={styles.addButton} activeOpacity={0.7}>
+                                <Ionicons name="add" size={16} color="#374151" />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Weight Chart */}
+                        <View style={styles.chartContainer}>
+                            <LineChart
+                                data={chartKitData}
+                                width={width - 80}
+                                height={120}
+                                chartConfig={{
+                                    backgroundColor: "#a7f3d0",
+                                    backgroundGradientFrom: "#a7f3d0",
+                                    backgroundGradientTo: "#67e8f9",
+                                    decimalPlaces: 1,
+                                    color: (opacity = 1) => `rgba(34, 211, 238, ${opacity})`,
+                                    labelColor: (opacity = 1) => `rgba(31, 41, 55, ${opacity})`,
+                                    style: { borderRadius: 8 },
+                                    propsForDots: { r: "4", strokeWidth: "2", stroke: "#22d3ee" }
+                                }}
+                                bezier
+                                style={{ borderRadius: 8 }}
+                            />
+                            <View style={styles.chartLabels}>
+                                <Text style={[styles.chartLabel, { top: 8 }]}>60</Text>
+                                <Text style={[styles.chartLabel, { top: 32 }]}>57.5</Text>
+                                <Text style={[styles.chartLabel, { bottom: 32 }]}>55</Text>
+                            </View>
+                        </View>
+                    </View>
                 </View>
-            </View>
-        </ScrollView>
+            </ScrollView>
+
+            {/* Floating Action Button */}
+            <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
+                <Ionicons name="add" size={24} color="white" />
+            </TouchableOpacity>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F9F9F9' },
+    container: {
+        flex: 1,
+        backgroundColor: '#f9fafb',
+    },
     header: {
-        backgroundColor: '#4CAF50',
-        padding: 20,
+        backgroundColor: '#10b981',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    headerContent: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center'
-    },
-    userInfo: { flexDirection: 'row', alignItems: 'center' },
-    avatar: {
-        backgroundColor: '#FF7043',
-        width: 40,
-        height: 40,
-        borderRadius: 20,
         alignItems: 'center',
+        marginTop: 16,
+    },
+    profileAvatar: {
+        width: 48,
+        height: 48,
+        backgroundColor: 'white',
+        borderRadius: 24,
         justifyContent: 'center',
-        marginRight: 10
+        alignItems: 'center',
     },
-    avatarText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-    userName: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
-    card: {
-        backgroundColor: '#fff',
-        margin: 15,
-        borderRadius: 15,
-        padding: 20,
-        elevation: 3
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
     },
-    cardHeader: {
+    headerText: {
+        color: 'white',
+        fontSize: 14,
+    },
+    content: {
+        flex: 1,
+        padding: 16,
+    },
+    section: {
+        marginBottom: 24,
+    },
+    sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10
+        marginBottom: 16,
     },
-    cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-    bmiSection: {
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#1f2937',
+    },
+    suggestionText: {
+        fontSize: 14,
+        color: '#3b82f6',
+    },
+    card: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 24,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    bmiCenter: {
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    bmiLabel: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#1f2937',
+        marginBottom: 4,
+    },
+    bmiValue: {
+        fontSize: 36,
+        fontWeight: 'bold',
+        color: '#ef4444',
+        marginBottom: 8,
+    },
+    timestampRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 4,
     },
-    bmiLabel: { fontSize: 16, color: '#555' },
-    bmiValue: { fontSize: 28, color: 'red', fontWeight: 'bold' },
-    bmiDate: { color: '#666', fontSize: 12, marginTop: 4 },
-    updateLink: { color: 'orange', fontSize: 13, marginTop: 4 },
-    bmiDetails: {
+    timestampText: {
+        fontSize: 14,
+        color: '#9ca3af',
+    },
+    updateText: {
+        fontSize: 14,
+        color: '#f59e0b',
+    },
+    statsRow: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginTop: 10
     },
-    detailItem: { fontSize: 14, color: '#333' },
-    detailStatus: { color: 'gray', fontSize: 14 },
-    waterValue: { fontSize: 24, color: 'red', fontWeight: 'bold', marginBottom: 10 },
-    waterLabel: { color: '#777', fontSize: 14 },
+    statItem: {
+        alignItems: 'center',
+    },
+    statValue: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#1f2937',
+    },
+    statLabel: {
+        fontSize: 14,
+        color: '#9ca3af',
+        marginTop: 4,
+    },
+    waterCenter: {
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    waterValueRow: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        marginBottom: 4,
+    },
+    waterValue: {
+        fontSize: 36,
+        fontWeight: 'bold',
+        color: '#ef4444',
+    },
+    waterUnit: {
+        fontSize: 18,
+        color: '#9ca3af',
+        marginLeft: 4,
+    },
+    waterLabel: {
+        fontSize: 14,
+        color: '#9ca3af',
+        marginBottom: 24,
+    },
     waterControls: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        marginTop: 15
+        gap: 16,
+        marginBottom: 24,
     },
-    controlButton: {
-        backgroundColor: '#eee',
-        padding: 12,
-        borderRadius: 30,
-        marginHorizontal: 10
-    }
+    waterButton: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        borderWidth: 2,
+        borderColor: '#06b6d4',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    waterInfo: {
+        gap: 12,
+    },
+    infoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    infoText: {
+        fontSize: 14,
+        color: '#9ca3af',
+    },
+    goalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    goalTitle: {
+        fontSize: 18,
+        fontWeight: '500',
+        color: '#1f2937',
+    },
+    addButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    chartContainer: {
+        position: 'relative',
+        height: 120,
+        borderRadius: 8,
+        overflow: 'hidden',
+    },
+    chartLabels: {
+        position: 'absolute',
+        left: 16,
+        top: 0,
+        bottom: 0,
+        justifyContent: 'space-between',
+    },
+    chartLabel: {
+        fontSize: 14,
+        color: '#4b5563',
+        position: 'absolute',
+    },
+    fab: {
+        position: 'absolute',
+        bottom: 80,
+        right: 24,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#06b6d4',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 4.65,
+        elevation: 8,
+    },
 });
