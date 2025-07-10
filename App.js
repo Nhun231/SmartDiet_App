@@ -6,29 +6,49 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator.js';
+import AuthProvider from './src/context/AuthProvider';
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(null);
+  const [authData, setAuthData] = useState({ accessToken: null, user: null });
 
-  // useEffect(() => {
-  //   const checkLogin = async () => {
-  //     const token = await AsyncStorage.getItem('token');
-  //     setIsLoggedIn(!!token);
-  //   };
-  //   checkLogin();
-  // }, []);
+  useEffect(() => {
+    const checkLogin = async () => {
+      const token = await AsyncStorage.getItem('accessToken');
+      setIsLoggedIn(!!token);
+    };
+    checkLogin();
+  }, []);
 
-  // if (isLoggedIn === null) return null; // or splash screen
+  const handleLoginSuccess = (accessToken, user) => {
+    setAuthData({ accessToken, user });
+    setIsLoggedIn(true);
+  };
+
+  if (isLoggedIn === null) return null; // or splash screen
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isLoggedIn ? (
-          <Stack.Screen name="Main" component={MainTabNavigator} />
+          <Stack.Screen 
+            name="Main" 
+            component={() => (
+              <AuthProvider initialAuth={authData}>
+                <MainTabNavigator />
+              </AuthProvider>
+            )} 
+          />
         ) : (
           <>
-            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen 
+              name="Login" 
+              component={(props) => (
+                <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} />
+              )} 
+            />
             <Stack.Screen name="Signup" component={SignupScreen} />
           </>
         )}

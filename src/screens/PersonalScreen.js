@@ -12,10 +12,11 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop, Rect, Polyline } from 'react-native-svg';
 import axios from "axios";
 import { LineChart } from 'react-native-chart-kit';
+import { PUBLIC_SERVER_ENDPOINT } from '@env';
 
 const { width } = Dimensions.get('window');
 
-const BASE_URL = process.env.PUBLIC_SERVER_ENDPOINT;
+const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 export default function PersonalScreen() {
     const [waterIntake, setWaterIntake] = useState(2364);
@@ -30,8 +31,6 @@ export default function PersonalScreen() {
             console.log(`${BASE_URL}/customer/calculate/history`);
             try {
                 const res = await axios.get(`${BASE_URL}/customer/calculate/history`);
-
-                // The backend returns { report: [ ... ] }
                 setWeightHistory(res.data.report);
             } catch (error) {
                 console.log('Error fetching weight history:', error);

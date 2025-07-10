@@ -11,6 +11,7 @@ module.exports = {
           "safe": false,
           "allowUndefined": true
         }
-      ]
+      ],
+      "@babel/plugin-transform-private-methods"
     ]
   };
