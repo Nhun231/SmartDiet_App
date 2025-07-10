@@ -54,6 +54,16 @@ export default function PersonalScreen() {
         ],
     };
 
+    const weights = chartData.map(d => d.y);
+    const minWeight = Math.min(...weights);
+    const maxWeight = Math.max(...weights);
+    const avgWeight = weights.reduce((a, b) => a + b, 0) / weights.length || 0;
+
+    // For nice axis marks, round min/max to nearest 0.5 or 1
+    const roundedMin = Math.floor(minWeight);
+    const roundedMax = Math.ceil(maxWeight);
+    const midWeight = ((roundedMax + roundedMin) / 2).toFixed(1);
+
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
@@ -153,7 +163,7 @@ export default function PersonalScreen() {
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.sectionTitle}>Mục tiêu</Text>
-                        <Text style={styles.suggestionText}>(gợi ý) 55.62 kg</Text>
+                        {/*<Text style={styles.suggestionText}>(gợi ý) 55.62 kg</Text>*/}
                     </View>
 
                     <View style={styles.card}>
@@ -184,9 +194,9 @@ export default function PersonalScreen() {
                                 style={{ borderRadius: 8 }}
                             />
                             <View style={styles.chartLabels}>
-                                <Text style={[styles.chartLabel, { top: 8 }]}>60</Text>
-                                <Text style={[styles.chartLabel, { top: 32 }]}>57.5</Text>
-                                <Text style={[styles.chartLabel, { bottom: 32 }]}>55</Text>
+                                <Text style={[styles.chartLabel, { top: 8 }]}>{roundedMax}</Text>
+                                <Text style={[styles.chartLabel, { top: 32 }]}>{midWeight}</Text>
+                                <Text style={[styles.chartLabel, { bottom: 32 }]}>{roundedMin}</Text>
                             </View>
                         </View>
                     </View>

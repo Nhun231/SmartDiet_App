@@ -41,15 +41,15 @@ export default function MainTabNavigator() {
           headerShown: false,
         }}
       />
+        <Tab.Screen name="Cá nhân" component={PersonalScreen}
+                    options={{
+                        headerShown: false,
+                    }}/>
       <Tab.Screen name="Cài đặt" component={SettingScreen}
                   options={{
                       headerShown: false,
                   }}/>
 
-      <Tab.Screen name="Cá nhân" component={PersonalScreen}
-                  options={{
-                      headerShown: false,
-                  }}/>
 
 
     </Tab.Navigator>
