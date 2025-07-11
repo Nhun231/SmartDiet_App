@@ -7,6 +7,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator.js';
 import AuthProvider from './src/context/AuthProvider';
+import WeightDetailScreen from './src/screens/WeightDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,14 +34,17 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isLoggedIn ? (
-          <Stack.Screen 
-            name="Main" 
-            component={() => (
-              <AuthProvider initialAuth={authData}>
-                <MainTabNavigator />
-              </AuthProvider>
-            )} 
-          />
+          <>
+            <Stack.Screen 
+              name="Main" 
+              component={() => (
+                <AuthProvider initialAuth={authData}>
+                  <MainTabNavigator />
+                </AuthProvider>
+              )} 
+            />
+            <Stack.Screen name="WeightDetailScreen" component={WeightDetailScreen} />
+          </>
         ) : (
           <>
             <Stack.Screen 

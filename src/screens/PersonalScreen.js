@@ -7,21 +7,35 @@ import {
     StyleSheet,
     SafeAreaView,
     Dimensions,
+    StatusBar,
+    Modal,
+    Pressable,
+    TextInput,
+    KeyboardAvoidingView,
+    Platform,
+    TouchableWithoutFeedback,
+    Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop, Rect, Polyline } from 'react-native-svg';
 import axios from "axios";
 import { LineChart } from 'react-native-chart-kit';
 import { PUBLIC_SERVER_ENDPOINT } from '@env';
+import WeightChart from '../components/WeightChart';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
 const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 export default function PersonalScreen() {
-    const [waterIntake, setWaterIntake] = useState(2364);
-    const [currentWeight, setCurrentWeight] = useState(55);
+    const [waterIntake, setWaterIntake] = useState(0);
+    const [currentBMI, setCurrentBMI] = useState({});
     const [weightHistory, setWeightHistory] = useState([]);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [newWeight, setNewWeight] = useState(currentBMI.weight);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigation = useNavigation();
 
     const incrementWater = () => setWaterIntake((prev) => prev + 250);
     const decrementWater = () => setWaterIntake((prev) => Math.max(0, prev - 250));
@@ -31,7 +45,12 @@ export default function PersonalScreen() {
             console.log(`${BASE_URL}/customer/calculate/history`);
             try {
                 const res = await axios.get(`${BASE_URL}/customer/calculate/history`);
-                setWeightHistory(res.data.report);
+                
+                if (res.data.report && res.data.report.length > 0) {
+                    setWeightHistory(res.data.report);
+                    setCurrentBMI(res.data.report[res.data.report.length - 1]);
+                    setWaterIntake((res.data.report[res.data.report.length - 1].waterIntake)*1000)
+                }
             } catch (error) {
                 console.log('Error fetching weight history:', error);
             }
@@ -39,33 +58,60 @@ export default function PersonalScreen() {
         fetchWeightHistory();
     }, []);
 
-    const chartData = weightHistory.map(item => ({
-        x: new Date(item.createdAt), // or format as needed
-        y: item.weight
-    }));
+    // Helper to format date as dd/MM
+    function formatDateDM(date) {
+        const d = new Date(date);
+        const day = d.getDate().toString().padStart(2, '0');
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        return `${day}/${month}`;
+    }
 
-    // Prepare data for chart-kit
-    const chartKitData = {
-        labels: chartData.map(d => d.x.toLocaleDateString()), // or format as needed
-        datasets: [
-            {
-                data: chartData.map(d => d.y),
-            },
-        ],
+    const openWeightModal = () => {
+        setNewWeight(currentBMI.weight);
+        setModalVisible(true);
+    };
+    const closeWeightModal = () => setModalVisible(false);
+
+    const incrementNewWeight = () => setNewWeight(w => parseFloat((w + 0.1).toFixed(1)));
+    const decrementNewWeight = () => setNewWeight(w => Math.max(0, parseFloat((w - 0.1).toFixed(1))));
+
+    // Remove handleUnitChange
+    // const handleUnitChange = (unit) => setWeightUnit(unit);
+
+    const handleUpdateWeight = async () => {
+        setIsSubmitting(true);
+        try {
+            const weightNum = parseFloat(newWeight);
+            if (isNaN(weightNum) || weightNum <= 0) {
+                setIsSubmitting(false);
+                return;
+            }
+            // Fetch newest calculation for required fields
+            const newestRes = await axios.get(`${BASE_URL}/customer/calculate/newest`);
+            const newest = newestRes.data;
+            // Use newest calculation fields, but update weight
+            const payload = {
+                gender: newest.gender,
+                age: newest.age,
+                height: newest.height,
+                weight: weightNum,
+                activity: newest.activity,
+            };
+            await axios.post(`${BASE_URL}/customer/calculate`, payload);
+            setModalVisible(false);
+            // Refresh weight history
+            const res = await axios.get(`${BASE_URL}/customer/calculate/history`);
+            setWeightHistory(res.data.report);
+            //rsetCurrentBMI(weightNum);
+        } catch (error) {
+            console.log('Error updating weight:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const weights = chartData.map(d => d.y);
-    const minWeight = Math.min(...weights);
-    const maxWeight = Math.max(...weights);
-    const avgWeight = weights.reduce((a, b) => a + b, 0) / weights.length || 0;
-
-    // For nice axis marks, round min/max to nearest 0.5 or 1
-    const roundedMin = Math.floor(minWeight);
-    const roundedMax = Math.ceil(maxWeight);
-    const midWeight = ((roundedMax + roundedMin) / 2).toFixed(1);
-
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#10b981' }}>
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.headerContent}>
@@ -90,23 +136,29 @@ export default function PersonalScreen() {
                     <View style={styles.card}>
                         <View style={styles.bmiCenter}>
                             <Text style={styles.bmiLabel}>BMI</Text>
-                            <Text style={styles.bmiValue}>21.8</Text>
+                            <Text style={styles.bmiValue}>{currentBMI.bmi ?? '--'}</Text>
                             <View style={styles.timestampRow}>
                                 <Ionicons name="time-outline" size={16} color="#9ca3af" />
-                                <Text style={styles.timestampText}>5 tháng 7 - 21:09</Text>
+                                <Text style={styles.timestampText}>
+                                    {currentBMI.createdAt ? new Date(currentBMI.createdAt).toLocaleString() : '--'}
+                                </Text>
                             </View>
-                            <Text style={styles.updateText}>Cập nhật cần nâng</Text>
+                            <Text style={styles.updateText}>Cập nhật cân nặng</Text>
                         </View>
 
                         <View style={styles.statsRow}>
                             <View style={styles.statItem}>
-                                <Text style={styles.statValue}>159 cm</Text>
+                                <Text style={styles.statValue}>{currentBMI.height ?? '--'} cm</Text>
                                 <Text style={styles.statLabel}>Chiều cao</Text>
                             </View>
                             <View style={styles.statItem}>
-                                <Text style={styles.statValue}>55 kg</Text>
-                                <Text style={styles.statLabel}>Cân nặng tốt</Text>
+                                <Text style={styles.statValue}>{currentBMI.weight ?? '--'} kg</Text>
+                                <Text style={styles.statLabel}>Cân nặng</Text>
                             </View>
+                        </View>
+                        <View style={styles.statItem}>
+                            <Text style={styles.statValue}>{currentBMI.tdee ?? '--'}</Text>
+                            <Text style={styles.statLabel}>TDEE</Text>
                         </View>
                     </View>
                 </View>
@@ -166,40 +218,21 @@ export default function PersonalScreen() {
                         {/*<Text style={styles.suggestionText}>(gợi ý) 55.62 kg</Text>*/}
                     </View>
 
-                    <View style={styles.card}>
-                        <View style={styles.goalHeader}>
-                            <Text style={styles.goalTitle}>Cân nặng</Text>
-                            <TouchableOpacity style={styles.addButton} activeOpacity={0.7}>
-                                <Ionicons name="add" size={16} color="#374151" />
-                            </TouchableOpacity>
-                        </View>
+                    <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('WeightDetailScreen')}>
+                        <View style={styles.card}>
+                            <View style={styles.goalHeader}>
+                                <Text style={styles.goalTitle}>Cân nặng</Text>
+                                <TouchableOpacity style={styles.addButton} activeOpacity={0.7} onPress={openWeightModal}>
+                                    <Ionicons name="add" size={16} color="#374151" />
+                                </TouchableOpacity>
+                            </View>
 
-                        {/* Weight Chart */}
-                        <View style={styles.chartContainer}>
-                            <LineChart
-                                data={chartKitData}
-                                width={width - 80}
-                                height={120}
-                                chartConfig={{
-                                    backgroundColor: "#a7f3d0",
-                                    backgroundGradientFrom: "#a7f3d0",
-                                    backgroundGradientTo: "#67e8f9",
-                                    decimalPlaces: 1,
-                                    color: (opacity = 1) => `rgba(34, 211, 238, ${opacity})`,
-                                    labelColor: (opacity = 1) => `rgba(31, 41, 55, ${opacity})`,
-                                    style: { borderRadius: 8 },
-                                    propsForDots: { r: "4", strokeWidth: "2", stroke: "#22d3ee" }
-                                }}
-                                bezier
-                                style={{ borderRadius: 8 }}
-                            />
-                            <View style={styles.chartLabels}>
-                                <Text style={[styles.chartLabel, { top: 8 }]}>{roundedMax}</Text>
-                                <Text style={[styles.chartLabel, { top: 32 }]}>{midWeight}</Text>
-                                <Text style={[styles.chartLabel, { bottom: 32 }]}>{roundedMin}</Text>
+                            {/* Weight Chart */}
+                            <View style={styles.chartContainer}>
+                                <WeightChart weightHistory={weightHistory} />
                             </View>
                         </View>
-                    </View>
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
 
@@ -207,6 +240,57 @@ export default function PersonalScreen() {
             <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
                 <Ionicons name="add" size={24} color="white" />
             </TouchableOpacity>
+            {/* Weight Update Modal */}
+            <Modal
+                visible={modalVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={closeWeightModal}
+            >
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={{ flex: 1, justifyContent: 'flex-end' }}
+                >
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+                            <View style={{ backgroundColor: 'white', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 }}>
+                                <Text style={{ fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 16 }}>Cập nhật cân nặng</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                                    <TouchableOpacity onPress={decrementNewWeight} style={{ padding: 16 }}>
+                                        <Ionicons name="remove" size={24} color="#10b981" />
+                                    </TouchableOpacity>
+                                    <TextInput
+                                        style={{ fontSize: 32, fontWeight: 'bold', marginHorizontal: 16, textAlign: 'center', minWidth: 60 }}
+                                        value={String(newWeight)}
+                                        onChangeText={text => {
+                                            const cleaned = text.replace(/[^0-9.]/g, '');
+                                            setNewWeight(cleaned === '' ? 0 : parseFloat(cleaned));
+                                        }}
+                                        keyboardType="numeric"
+                                        maxLength={6}
+                                    />
+                                    <TouchableOpacity onPress={incrementNewWeight} style={{ padding: 16 }}>
+                                        <Ionicons name="add" size={24} color="#10b981" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 16 }}>
+                                    <Text style={{ fontWeight: 'bold', color: '#10b981' }}>kg</Text>
+                                </View>
+                                <TouchableOpacity
+                                    style={{ backgroundColor: '#10b981', borderRadius: 24, paddingVertical: 12, alignItems: 'center', marginBottom: 8 }}
+                                    onPress={handleUpdateWeight}
+                                    disabled={isSubmitting}
+                                >
+                                    <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>{isSubmitting ? 'Đang cập nhật...' : 'Cập nhật'}</Text>
+                                </TouchableOpacity>
+                                <Pressable onPress={closeWeightModal} style={{ alignItems: 'center', marginTop: 8 }}>
+                                    <Text style={{ color: '#6b7280' }}>Hủy</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </TouchableWithoutFeedback>
+                </KeyboardAvoidingView>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -219,7 +303,8 @@ const styles = StyleSheet.create({
     header: {
         backgroundColor: '#10b981',
         paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingTop: 0, // flush with top
+        paddingBottom: 12,
     },
     headerContent: {
         flexDirection: 'row',
@@ -247,6 +332,7 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         padding: 16,
+        backgroundColor: '#f9fafb',
     },
     section: {
         marginBottom: 24,
@@ -400,7 +486,7 @@ const styles = StyleSheet.create({
     },
     chartContainer: {
         position: 'relative',
-        height: 120,
+        height: 180,
         borderRadius: 8,
         overflow: 'hidden',
     },
