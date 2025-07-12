@@ -18,20 +18,28 @@ export default function WeightDetailScreen({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('week');
   const [showPicker, setShowPicker] = useState(false);
+  const [goalWeight, setGoalWeight] = useState(50);
 
   useEffect(() => {
-    const fetchHistory = async () => {
+    const fetchHistoryAndGoal = async () => {
       setLoading(true);
       try {
         const res = await axios.get(`${PUBLIC_SERVER_ENDPOINT}/customer/calculate/history?filter=${filter}`);
         setWeightHistory(res.data.report);
+        // Fetch diet plan for goal weight
+        const planRes = await axios.get(`${PUBLIC_SERVER_ENDPOINT}/customer/dietplan/get-current`);
+        if (planRes.data && planRes.data.targetWeightChange) {
+          setGoalWeight(planRes.data.targetWeightChange);
+        } else {
+          setGoalWeight(50);
+        }
       } catch (e) {
-        // handle error
+        console.log(e)
       } finally {
         setLoading(false);
       }
     };
-    fetchHistory();
+    fetchHistoryAndGoal();
   }, [filter]);
 
   if (loading) return <Text>Loading...</Text>;
@@ -40,7 +48,7 @@ export default function WeightDetailScreen({ navigation, route }) {
   const startWeight = weightHistory[0].weight;
   const currentWeight = weightHistory[weightHistory.length - 1].weight;
   const weightChange = (currentWeight - startWeight).toFixed(1);
-  const goalWeight = 50; // You can make this dynamic if needed
+  
 
   // Sort history by newest first
   const sortedHistory = [...weightHistory].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));

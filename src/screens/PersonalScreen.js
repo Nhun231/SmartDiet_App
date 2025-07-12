@@ -17,14 +17,10 @@ import {
     Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Path, Circle, Defs, LinearGradient, Stop, Rect, Polyline } from 'react-native-svg';
 import axios from "axios";
-import { LineChart } from 'react-native-chart-kit';
 import { PUBLIC_SERVER_ENDPOINT } from '@env';
 import WeightChart from '../components/WeightChart';
 import { useNavigation } from '@react-navigation/native';
-
-const { width } = Dimensions.get('window');
 
 const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
@@ -58,14 +54,6 @@ export default function PersonalScreen() {
         fetchWeightHistory();
     }, []);
 
-    // Helper to format date as dd/MM
-    function formatDateDM(date) {
-        const d = new Date(date);
-        const day = d.getDate().toString().padStart(2, '0');
-        const month = (d.getMonth() + 1).toString().padStart(2, '0');
-        return `${day}/${month}`;
-    }
-
     const openWeightModal = () => {
         setNewWeight(currentBMI.weight);
         setModalVisible(true);
@@ -74,9 +62,6 @@ export default function PersonalScreen() {
 
     const incrementNewWeight = () => setNewWeight(w => parseFloat((w + 0.1).toFixed(1)));
     const decrementNewWeight = () => setNewWeight(w => Math.max(0, parseFloat((w - 0.1).toFixed(1))));
-
-    // Remove handleUnitChange
-    // const handleUnitChange = (unit) => setWeightUnit(unit);
 
     const handleUpdateWeight = async () => {
         setIsSubmitting(true);
