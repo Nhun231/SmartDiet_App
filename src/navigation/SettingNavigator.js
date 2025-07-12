@@ -6,6 +6,8 @@ import BMREditScreen from '../screens/BMREditScreen';
 import ExerciseLevelScreen from '../screens/ExerciseLevelScreen';
 import TargetScreen from '../screens/TargetScreen';
 import NutritionSettingScreen from '../screens/NutritionSettingScreen'
+import PersonalScreen from '../screens/PersonalScreen';
+import InitialCalculateScreen from '../screens/InitialCalculateScreen'
 
 const Stack = createNativeStackNavigator();
 
@@ -17,7 +19,8 @@ export default function SettingStackNavigator() {
             <Stack.Screen name="ExerciseLevelScreen" component={ExerciseLevelScreen} />
             <Stack.Screen name="TargetScreen" component={TargetScreen} />
             <Stack.Screen name="NutritionSetting" component={NutritionSettingScreen} />
-
+            <Stack.Screen name="PersonalScreen" component={PersonalScreen} />
+            <Stack.Screen name="InitialCalculateScreen" component={InitialCalculateScreen} />
         </Stack.Navigator>
     );
 }

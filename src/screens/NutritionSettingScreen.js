@@ -1,32 +1,75 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import {
+    View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert
+} from 'react-native';
 import Slider from '@react-native-community/slider';
 import PieChart from 'react-native-pie-chart';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+
+const BASE_URL = 'http://192.168.1.202:8080/smartdiet';
 
 export default function NutritionSettingScreen({ navigation }) {
     const [carbs, setCarbs] = useState(35);
     const [protein, setProtein] = useState(35);
-    const [fat, setFat] = useState(30);
+    const [fat, setFat] = useState(25);
+    const [fiber, setFiber] = useState(5);
+    const [tdee, setTdee] = useState(2000);
 
-    const totalCalories = 2045; // Giả định tổng kcal
+    useFocusEffect(
+        useCallback(() => {
+            const fetchData = async () => {
+                try {
+                    const token = await AsyncStorage.getItem('accessToken');
+                    const res = await axios.get(`${BASE_URL}/customer/calculate/newest`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+                    const data = res.data;
+                    setCarbs(data.nutrition?.carbPercent || 35);
+                    setProtein(data.nutrition?.proteinPercent || 35);
+                    setFat(data.nutrition?.fatPercent || 25);
+                    setFiber(data.nutrition?.fiberPercent || 5);
+                    setTdee(data.tdee || 2000);
+                } catch (err) {
+                    console.error(err);
+                    Alert.alert('Lỗi', 'Không thể tải dữ liệu dinh dưỡng');
+                }
+            };
+            fetchData();
+        }, [])
+    );
 
-    const handleSave = () => {
-        const totalPercent = carbs + protein + fat;
+    const handleSave = async () => {
+        const totalPercent = Math.round(carbs + protein + fat + fiber);
         if (totalPercent !== 100) {
-            Alert.alert(
-                'Lỗi',
-                `Tổng phần trăm phải bằng 100% (hiện tại: ${totalPercent}%)`
-            );
+            Alert.alert('Lỗi', `Tổng phần trăm phải bằng 100% (hiện tại: ${totalPercent}%)`);
             return;
         }
-        Alert.alert('Thành công', 'Dữ liệu đã được lưu thành công!', [
-            { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
+        try {
+            const token = await AsyncStorage.getItem('accessToken');
+            await axios.patch(`${BASE_URL}/customer/calculate/update-nutrition`, {
+                carbPercent: carbs,
+                proteinPercent: protein,
+                fatPercent: fat,
+                fiberPercent: fiber,
+            }, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            Alert.alert('Thành công', 'Đã lưu cài đặt dinh dưỡng', [
+                { text: 'OK', onPress: () => navigation.goBack() },
+            ]);
+        } catch (err) {
+            console.error(err);
+            Alert.alert('Lỗi', err.response?.data?.message || 'Lỗi khi lưu cài đặt');
+        }
     };
 
     return (
         <ScrollView style={styles.container}>
+            {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Icon name="arrow-left" size={24} color="#fff" />
@@ -35,44 +78,24 @@ export default function NutritionSettingScreen({ navigation }) {
                 <View style={{ width: 24 }} />
             </View>
 
+            {/* Pie Chart */}
             <Text style={styles.sectionTitle}>Sơ đồ phân bổ dinh dưỡng</Text>
             <View style={styles.chartContainer}>
                 <PieChart
                     widthAndHeight={220}
-                    series={[carbs, protein, fat]}
-                    sliceColor={['#2196F3', '#FFC107', '#9C27B0']}
+                    series={[carbs, protein, fat, fiber]}
+                    sliceColor={['#2196F3', '#FFC107', '#9C27B0', '#4CAF50']}
                     coverRadius={0.45}
                     coverFill={'#FFF'}
                 />
-                <Text style={styles.chartCenterText}>100%</Text>
+                <Text style={styles.chartCenterText}>{carbs + protein + fat + fiber}%</Text>
             </View>
 
-            {/* Carbs */}
-            <MacroSlider
-                color="#2196F3"
-                name="Tinh bột"
-                value={carbs}
-                onValueChange={setCarbs}
-                totalCalories={totalCalories}
-            />
-
-            {/* Protein */}
-            <MacroSlider
-                color="#FFC107"
-                name="Chất đạm"
-                value={protein}
-                onValueChange={setProtein}
-                totalCalories={totalCalories}
-            />
-
-            {/* Fat */}
-            <MacroSlider
-                color="#9C27B0"
-                name="Chất béo"
-                value={fat}
-                onValueChange={setFat}
-                totalCalories={totalCalories}
-            />
+            {/* Sliders */}
+            <MacroSlider name="Tinh bột" value={carbs} onValueChange={setCarbs} color="#2196F3" totalCalories={tdee} />
+            <MacroSlider name="Chất đạm" value={protein} onValueChange={setProtein} color="#FFC107" totalCalories={tdee} />
+            <MacroSlider name="Chất béo" value={fat} onValueChange={setFat} color="#9C27B0" totalCalories={tdee} />
+            <MacroSlider name="Chất xơ" value={fiber} onValueChange={setFiber} color="#4CAF50" totalCalories={tdee} />
 
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
                 <Text style={styles.saveButtonText}>Lưu</Text>
@@ -81,7 +104,7 @@ export default function NutritionSettingScreen({ navigation }) {
     );
 }
 
-function MacroSlider({ color, name, value, onValueChange, totalCalories }) {
+function MacroSlider({ name, value, onValueChange, color, totalCalories }) {
     const grams = Math.round((totalCalories * value) / 100 / 4);
     const calories = Math.round((totalCalories * value) / 100);
 
@@ -129,7 +152,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F9F9F9' },
     header: {
         backgroundColor: '#4CAF50',
-        paddingTop: 30,
+        paddingTop: 50,
         paddingBottom: 20,
         paddingHorizontal: 20,
         flexDirection: 'row',

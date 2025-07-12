@@ -6,6 +6,7 @@ import SettingScreen from '../screens/SettingScreen';
 import FavouriteScreen from '../screens/FavouriteScreen';
 import PersonalScreen from "../screens/PersonalScreen";
 import SettingNavigator from './SettingNavigator';
+import DiaryNavigator from './DiaryNavigator';
 
 const Tab = createBottomTabNavigator();
 
@@ -30,62 +31,13 @@ export default function MainTabNavigator() {
         },
         tabBarActiveTintColor: '#4CD08D',
         tabBarInactiveTintColor: 'gray',
-        headerShown: false, // ẩn tiêu đề mặc định
+        headerShown: false,
       })}
     >
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Nhật kí') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Yêu thích') {
-            iconName = focused ? 'heart' : 'heart-outline';
-          } else if (route.name === 'Cài đặt') {
-            iconName = focused ? 'settings' : 'settings-outline';
-          } else if (route.name === 'Cá nhân') {
-            iconName = focused ? 'person' : 'person-outline'; // 👈 Icon người
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#4CD08D',
-        tabBarInactiveTintColor: 'gray',
-        headerShown: false, // ẩn tiêu đề mặc định
-      })}
-    >
-      <Tab.Screen name="Nhật kí" component={DiaryScreen} />
-      <Tab.Screen
-        name="Yêu thích"
-        component={FavouriteScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Tab.Screen name="Cài đặt" component={SettingScreen}
-                  options={{
-                      headerShown: false,
-                  }}/>
-
-      <Tab.Screen name="Cá nhân" component={PersonalScreen}
-                  options={{
-                      headerShown: false,
-                  }}/>
-
-
-      <Tab.Screen
-        name="Yêu thích"
-        component={FavouriteScreen}
-        options={{
-          headerShown: false, // 👈 Ẩn header mặc định
-        }}
-      />
+      <Tab.Screen name="Nhật kí" component={DiaryNavigator} />
+      <Tab.Screen name="Yêu thích" component={FavouriteScreen} />
       <Tab.Screen name="Cài đặt" component={SettingNavigator} />
-
       <Tab.Screen name="Cá nhân" component={PersonalScreen} />
-
-
     </Tab.Navigator>
   );
 }

@@ -8,18 +8,22 @@ import {
     Modal,
     Pressable,
     TextInput,
+    KeyboardAvoidingView,
+    Platform,
+    Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import axios from 'axios';
 
+const BASE_URL = 'http://192.168.1.202:8080/smartdiet';
 const targets = [
-    { label: 'Giảm cân', desc: 'Quản lý cân nặng bằng cách ăn uống thông minh hơn' },
-    { label: 'Giữ nguyên cân nặng', desc: 'Tối ưu cho sức khoẻ và vóc dáng hiện tại' },
-    { label: 'Tăng cân', desc: 'Tăng cân hiệu quả với chế độ eat clean' },
+    { label: 'Giảm cân', value: 'lose', desc: 'Quản lý cân nặng bằng cách ăn uống thông minh hơn' },
+    { label: 'Giữ nguyên cân nặng', value: 'keep', desc: 'Tối ưu cho sức khoẻ và vóc dáng hiện tại' },
+    { label: 'Tăng cân', value: 'gain', desc: 'Tăng cân hiệu quả với chế độ eat clean' },
 ];
 
 export default function TargetScreen({ navigation }) {
-    const [selectedTarget, setSelectedTarget] = useState('Giữ nguyên cân nặng');
+    const [selectedTarget, setSelectedTarget] = useState(targets[1]);
     const [modalVisible, setModalVisible] = useState(false);
     const [targetWeight, setTargetWeight] = useState(50);
     const [inputText, setInputText] = useState('50');
@@ -32,17 +36,42 @@ export default function TargetScreen({ navigation }) {
         }
     };
 
-
     const handleSelect = (target) => {
         setSelectedTarget(target);
-        if (target === 'Giảm cân' || target === 'Tăng cân') {
+        if (target.value === 'lose' || target.value === 'gain') {
             setModalVisible(true);
+        } else {
+            callApi(target.value);
         }
     };
 
+    const callApi = async (goalValue, weightChange = 0) => {
+        try {
+            const res = await axios.put(`${BASE_URL}/customer/dietplan/update`, {
+                goal: goalValue,
+                targetWeightChange: weightChange,
+            });
+            navigation.navigate('PersonalScreen', { plan: res.data });
+        } catch (error) {
+            if (error.response && error.response.status === 404) {
+                try {
+                    const resCreate = await axios.post(`${BASE_URL}/customer/dietplan/create`, {
+                        goal: goalValue,
+                        targetWeightChange: weightChange,
+                    });
+                    navigation.navigate('PersonalScreen', { plan: resCreate.data });
+                } catch (errCreate) {
+                    Alert.alert('Lỗi', errCreate.response?.data?.message || 'Lỗi khi tạo mới kế hoạch');
+                }
+            } else {
+                Alert.alert('Lỗi', error.response?.data?.message || 'Lỗi kết nối');
+            }
+        }
+    };
+
+
     return (
         <ScrollView style={styles.container}>
-            {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Icon name="arrow-left" size={24} color="#fff" />
@@ -51,18 +80,15 @@ export default function TargetScreen({ navigation }) {
                 <View style={{ width: 24 }} />
             </View>
 
-            {/* Question */}
             <Text style={styles.question}>Mục tiêu của bạn là gì?</Text>
 
-            {/* Options */}
             {targets.map((target) => {
-                const isSelected = selectedTarget === target.label;
+                const isSelected = selectedTarget.value === target.value;
                 return (
                     <TouchableOpacity
-                        key={target.label}
+                        key={target.value}
                         style={[styles.option, isSelected && styles.optionSelected]}
-                        onPress={() => handleSelect(target.label)}
-                        activeOpacity={0.8}
+                        onPress={() => handleSelect(target)}
                     >
                         <Text style={[styles.label, isSelected && styles.labelSelected]}>{target.label}</Text>
                         <Text style={styles.desc}>{target.desc}</Text>
@@ -71,16 +97,10 @@ export default function TargetScreen({ navigation }) {
             })}
 
             {/* Modal */}
-            <Modal
-                visible={modalVisible}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setModalVisible(false)}
-            >
+            <Modal visible={modalVisible} transparent animationType="fade">
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={modalStyles.modalOverlay}
-                    keyboardVerticalOffset={Platform.OS === 'android' ? 20 : 0}
                 >
                     <View style={modalStyles.modalContainer}>
                         <Text style={modalStyles.modalTitle}>Nhập cân nặng mục tiêu</Text>
@@ -91,7 +111,7 @@ export default function TargetScreen({ navigation }) {
                             <TextInput
                                 style={modalStyles.inputField}
                                 value={inputText}
-                                onChangeText={(text) => setInputText(text.replace(/[^0-9]/g, ''))} // chỉ cho số
+                                onChangeText={(text) => setInputText(text.replace(/[^0-9]/g, ''))}
                                 keyboardType="numeric"
                             />
                             <Text style={{ fontSize: 16, color: '#666', marginTop: 5 }}>kg</Text>
@@ -105,16 +125,18 @@ export default function TargetScreen({ navigation }) {
                                 const num = parseInt(inputText);
                                 if (!isNaN(num) && num >= 20 && num <= 200) {
                                     setTargetWeight(num);
+                                    setModalVisible(false);
+                                    callApi(selectedTarget.value, num);
+                                } else {
+                                    Alert.alert('Lỗi', 'Cân nặng không hợp lệ');
                                 }
-                                setModalVisible(false);
                             }}
                         >
-                            <Text style={modalStyles.saveButtonText}>Lưu</Text>
+                            <Text style={modalStyles.saveButtonText}>Tiếp tục</Text>
                         </Pressable>
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
-
         </ScrollView>
     );
 }
@@ -165,14 +187,13 @@ const styles = StyleSheet.create({
     desc: { fontSize: 16, color: '#666', textAlign: 'center', marginTop: 8 },
 });
 
-// Styles riêng cho modal (không ảnh hưởng layout gốc)
 const modalStyles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        padding: 20, // Giúp modal không sát mép
+        padding: 20,
     },
     modalContainer: {
         width: '100%',
@@ -195,7 +216,6 @@ const modalStyles = StyleSheet.create({
         borderRadius: 50,
         marginHorizontal: 15,
     },
-    weightText: { fontSize: 24, fontWeight: 'bold', color: '#333', minWidth: 100, textAlign: 'center' },
     saveButton: {
         backgroundColor: '#4CAF50',
         paddingVertical: 12,
@@ -216,5 +236,4 @@ const modalStyles = StyleSheet.create({
         textAlign: 'center',
         marginHorizontal: 10,
     },
-
 });

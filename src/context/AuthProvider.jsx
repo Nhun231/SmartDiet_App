@@ -3,9 +3,9 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
 import { jwtDecode } from "jwt-decode";
-import { PUBLIC_SERVER_ENDPOINT } from '@env';
 
-const BASE_URL = PUBLIC_SERVER_ENDPOINT; // Set your API base URL here
+
+const BASE_URL = 'http://192.168.1.202:8080/smartdiet';
 
 const AuthContext = createContext(undefined);
 
@@ -65,7 +65,7 @@ const AuthProvider = ({ children, initialAuth = null }) => {
           return Promise.reject(error);
         }
         if (
-          error.response?.status === 401 
+          error.response?.status === 401
         ) {
           if (isRefreshing) {
             return Promise.reject(error);

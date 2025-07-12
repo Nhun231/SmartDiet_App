@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { KeyboardAvoidingView, Platform } from 'react-native';
-import { PUBLIC_SERVER_ENDPOINT } from '@env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+
+const BASE_URL = 'http://192.168.1.202:8080/smartdiet';
 
 export default function BMREditScreen({ navigation }) {
     const [gender, setGender] = useState('Nữ');
@@ -10,11 +12,70 @@ export default function BMREditScreen({ navigation }) {
     const [height, setHeight] = useState('160');
     const [weight, setWeight] = useState('45');
     const [activity, setActivity] = useState('Vừa');
+    const [tdee, setTdee] = useState('');
 
     const [modalVisible, setModalVisible] = useState(false);
     const [modalField, setModalField] = useState('');
     const [modalValue, setModalValue] = useState('');
     const [modalUnit, setModalUnit] = useState('');
+
+    // Auto fetch data khi mở màn
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = await AsyncStorage.getItem('accessToken');
+                const res = await axios.get(`${BASE_URL}/customer/calculate/newest`);
+                const data = res.data;
+                setGender(data.gender || 'Nữ');
+                setAge(String(data.age || ''));
+                setHeight(String(data.height || ''));
+                setWeight(String(data.weight || ''));
+                setActivity(data.activity || 'Vừa');
+                setTdee(data.tdee || '');
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                Alert.alert('Lỗi', 'Không thể lấy dữ liệu hồ sơ.');
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
+    const handleSave = async () => {
+        try {
+            const token = await AsyncStorage.getItem('accessToken');
+            const res = await axios.post(
+                `${BASE_URL}/customer/calculate`,
+                {
+                    gender,
+                    age: Number(age),
+                    height: Number(height),
+                    weight: Number(weight),
+                    activity: activity.toLowerCase(),
+                }
+            );
+
+            const data = res.data;
+            setTdee(data.tdee);
+
+            await axios.put(
+                `${BASE_URL}/users/update`,
+                {
+                    gender,
+                    age,
+                    height,
+                    weight,
+                    activity,
+                    tdee: data.tdee,
+                }
+            );
+
+            Alert.alert('Thành công', 'Đã lưu hồ sơ thành công!');
+        } catch (error) {
+            console.error('API error:', error);
+            Alert.alert('Lỗi', error.response?.data?.message || error.message);
+        }
+    };
 
     const handleOpenModal = (field, value) => {
         setModalField(field);
@@ -39,61 +100,6 @@ export default function BMREditScreen({ navigation }) {
         setModalVisible(true);
     };
 
-    const handleCalculate = async () => {
-        try {
-            const res = await fetch(`${PUBLIC_SERVER_ENDPOINT}/customers/calculate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    gender,
-                    age: Number(age),
-                    height: Number(height),
-                    weight: Number(weight),
-                    activity: activity.toLowerCase(),
-                }),
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Lỗi server');
-            }
-
-            const data = await res.json();
-            console.log('Kết quả:', data);
-            Alert.alert(
-                'Kết quả TDEE',
-                `TDEE: ${data.tdee} Kcal/ngày\nBMR: ${data.bmr} Kcal\nBMI: ${data.bmi}`
-            );
-
-            // Gửi thêm API lưu user (không cần userId, backend tự xử lý)
-            const updateRes = await fetch(`${PUBLIC_SERVER_ENDPOINT}/users/update`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    gender,
-                    age,
-                    height,
-                    weight,
-                    activity,
-                    tdee: data.tdee,
-                }),
-            });
-
-            if (updateRes.ok) {
-                console.log('Lưu thành công!');
-                Alert.alert('Thông báo', 'Đã lưu hồ sơ thành công!');
-            } else {
-                const errorData = await updateRes.json();
-                console.log('Lỗi khi lưu hồ sơ:', errorData.message);
-                Alert.alert('Lỗi', errorData.message || 'Lỗi khi lưu hồ sơ.');
-            }
-        } catch (error) {
-            console.error('Lỗi API:', error);
-            Alert.alert('Lỗi', error.message);
-        }
-    };
-
-
     return (
         <ScrollView style={styles.container}>
             {/* Header */}
@@ -105,14 +111,8 @@ export default function BMREditScreen({ navigation }) {
                     <Text style={styles.headerTitle}>Cập nhật BMR</Text>
                     <View style={{ width: 24 }} />
                 </View>
-                <TouchableOpacity
-                    style={styles.targetButton}
-                    onPress={() => navigation.navigate('TargetScreen')}
-                >
+                <TouchableOpacity style={styles.targetButton} onPress={() => navigation.navigate('TargetScreen')}>
                     <Text style={styles.targetButtonText}>Đặt mục tiêu</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.targetButton} onPress={handleCalculate}>
-                    <Text style={styles.targetButtonText}>Tính chỉ số & Lưu</Text>
                 </TouchableOpacity>
             </View>
 
@@ -121,7 +121,7 @@ export default function BMREditScreen({ navigation }) {
                 {/* Kcal fixed */}
                 <TouchableOpacity style={styles.inputRow} activeOpacity={1}>
                     <Text style={styles.inputLabel}>Kcal/ngày</Text>
-                    <Text style={styles.inputValue}>2045</Text>
+                    <Text style={styles.inputValue}>{tdee ? tdee : '--'}</Text>
                 </TouchableOpacity>
 
                 {/* Editable fields */}
@@ -144,10 +144,7 @@ export default function BMREditScreen({ navigation }) {
                 ))}
 
                 {/* Gender Modal */}
-                <TouchableOpacity
-                    style={styles.inputRow}
-                    onPress={handleOpenGenderModal}
-                >
+                <TouchableOpacity style={styles.inputRow} onPress={handleOpenGenderModal}>
                     <Text style={styles.inputLabel}>Giới tính</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={styles.inputValue}>{gender}</Text>
@@ -168,17 +165,18 @@ export default function BMREditScreen({ navigation }) {
                 </TouchableOpacity>
             </View>
 
-            {/* Modal */}
+            {/* Save Button at Bottom */}
+            <TouchableOpacity style={[styles.targetButton, { backgroundColor: '#4CAF50' }]} onPress={handleSave}>
+                <Text style={[styles.targetButtonText, { color: '#fff' }]}>Lưu</Text>
+            </TouchableOpacity>
+
             <Modal
                 visible={modalVisible}
                 transparent
                 animationType="slide"
                 onRequestClose={() => setModalVisible(false)}
             >
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={styles.modalOverlay}
-                >
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalContent}>
                             <Text style={styles.modalTitle}>Cập nhật {modalField}</Text>
@@ -226,11 +224,9 @@ export default function BMREditScreen({ navigation }) {
                                             <Icon name="plus" size={22} color="#4CAF50" />
                                         </TouchableOpacity>
                                     </View>
-                                    {modalUnit ? (
-                                        <Text style={styles.unitText}>{modalUnit}</Text>
-                                    ) : null}
+                                    {modalUnit ? <Text style={styles.unitText}>{modalUnit}</Text> : null}
                                     <TouchableOpacity style={styles.saveButton} onPress={handleSaveModal}>
-                                        <Text style={styles.saveButtonText}> Cập nhật</Text>
+                                        <Text style={styles.saveButtonText}>Cập nhật</Text>
                                     </TouchableOpacity>
                                 </>
                             )}
@@ -242,12 +238,11 @@ export default function BMREditScreen({ navigation }) {
     );
 }
 
-
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F9F9F9' },
     header: {
         backgroundColor: '#4CAF50',
-        paddingTop: 30,
+        paddingTop: 50,
         paddingBottom: 15,
         paddingHorizontal: 20,
         flexDirection: 'column',

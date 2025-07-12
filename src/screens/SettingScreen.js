@@ -33,7 +33,8 @@ export default function SettingScreen({ navigation }) {
         onPress={() => navigation.navigate('NutritionSetting')}
       />
       <MenuItem icon="water" text="Tạo mới lịch uống nước" iconColor="#2196F3" />
-      <MenuItem icon="cog" text="Cài đặt tài khoản" iconColor="#9C27B0" />
+      <MenuItem icon="cog" text="Cài đặt tài khoản" iconColor="#9C27B0"
+        onPress={() => navigation.navigate('InitialCalculateScreen')} />
       <Text style={styles.sectionTitle}>Trợ giúp</Text>
       <MenuItem icon="message" text="Gửi phản hồi" iconColor="#00BCD4" />
       <MenuItem icon="information" text="Về chúng tôi" iconColor="#795548" />
