@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -12,11 +12,10 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop, Rect, Polyline } from 'react-native-svg';
 import axios from "axios";
 import { LineChart } from 'react-native-chart-kit';
-import { PUBLIC_SERVER_ENDPOINT } from '@env';
 
 const { width } = Dimensions.get('window');
 
-const BASE_URL = PUBLIC_SERVER_ENDPOINT;
+const BASE_URL = "http://192.168.1.11:8080/smartdiet";
 
 export default function PersonalScreen() {
     const [waterIntake, setWaterIntake] = useState(2364);

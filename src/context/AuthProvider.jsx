@@ -3,9 +3,8 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
 import { jwtDecode } from "jwt-decode";
-import { PUBLIC_SERVER_ENDPOINT } from '@env';
 
-const BASE_URL = PUBLIC_SERVER_ENDPOINT; // Set your API base URL here
+const BASE_URL = "http://192.168.1.11:8080/smartdiet"; // Set your API base URL here
 
 const AuthContext = createContext(undefined);
 

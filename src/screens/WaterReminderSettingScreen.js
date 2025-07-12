@@ -6,10 +6,12 @@ import {
     TouchableOpacity,
     ScrollView,
     Alert,
+    SafeAreaView
 } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import TimePickerModal from '../components/TimePickerModal';
 import { generateSchedule } from '../utils/generateSchedule';
+import axiosInstance from '../api/axiosInstance';
 
 const API_BASE = 'http://192.168.1.11:8080/smartdiet/water-reminders';
 
@@ -27,8 +29,8 @@ const WaterScheduleScreen = () => {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const res = await fetch(`${API_BASE}/reminder-schedule`);
-                const data = await res.json();
+                const res = await axiosInstance.get('/water-reminders/reminder-schedule');
+                const data = res.data;
                 if (data) {
                     setWakeUpTime(data.wakeUpTime);
                     setSleepTime(data.sleepTime);
@@ -92,23 +94,40 @@ const WaterScheduleScreen = () => {
     };
 
     const handleSave = async () => {
+        if (!wakeUpTime || !sleepTime || !reminderGap || !Array.isArray(schedule) || schedule.length === 0 || !expoPushToken) {
+            Alert.alert('Dữ liệu không hợp lệ', 'Vui lòng kiểm tra lại các trường thông tin!');
+            return;
+        }
+
+        // Kiểm tra định dạng thời gian đơn giản (HH:mm)
+        const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+        if (!timeRegex.test(wakeUpTime) || !timeRegex.test(sleepTime)) {
+            Alert.alert('Thời gian không hợp lệ', 'Định dạng thời gian phải là HH:mm');
+            return;
+        }
+
+        // Kiểm tra từng phần tử trong schedule
+        const hasInvalidTime = schedule.some(item => !timeRegex.test(item.time));
+        if (hasInvalidTime) {
+            Alert.alert('Có giờ không hợp lệ trong lịch', 'Vui lòng kiểm tra lại các khung giờ');
+            return;
+        }
+
         try {
-            await fetch(`${API_BASE}/reminder-setting`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    wakeUpTime,
-                    sleepTime,
-                    reminderGap,
-                    expoPushToken,
-                    schedule,
-                }),
+            await axiosInstance.post('/water-reminders/reminder-setting', {
+                wakeUpTime,
+                sleepTime,
+                reminderGap,
+                expoPushToken,
+                schedule,
             });
             Alert.alert('✅ Đã lưu thành công!');
         } catch (err) {
-            Alert.alert('❌ Lỗi khi lưu dữ liệu');
+            console.log('Lỗi lưu:', err);
+            Alert.alert('Lỗi khi lưu dữ liệu');
         }
     };
+
 
     const renderWaterGlass = (item, realIndex) => (
         <View key={realIndex} style={styles.glassContainer}>
@@ -123,7 +142,7 @@ const WaterScheduleScreen = () => {
     );
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <View style={styles.headerSingleLine}>
                 <Text style={styles.sleepLabel}>Lịch trình ngủ</Text>
                 <View style={styles.sleepTimes}>
@@ -191,7 +210,7 @@ const WaterScheduleScreen = () => {
                     return true;
                 }}
             />
-        </View>
+        </SafeAreaView>
     );
 };
 
