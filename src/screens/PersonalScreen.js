@@ -518,6 +518,18 @@ const styles = StyleSheet.create({
         shadowRadius: 4.65,
         elevation: 8,
     },
+    dietPlanBox: {
+        backgroundColor: '#fcfcfcff',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 4,
+        alignItems: 'center',
+    },
     dietPlanText: {
         fontSize: 16,
         color: '#000000ff',
