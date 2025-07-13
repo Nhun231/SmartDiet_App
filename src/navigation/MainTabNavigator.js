@@ -6,6 +6,8 @@ import DiaryScreen from '../screens/DiaryScreen';
 import SettingScreen from '../screens/SettingScreen';
 import FavouriteScreen from '../screens/FavouriteScreen';
 import PersonalScreen from "../screens/PersonalScreen";
+import SettingNavigator from './SettingNavigator';
+import DiaryNavigator from './DiaryNavigator';
 
 const Tab = createBottomTabNavigator();
 
@@ -30,27 +32,13 @@ export default function MainTabNavigator() {
         },
         tabBarActiveTintColor: '#4CD08D',
         tabBarInactiveTintColor: 'gray',
-        headerShown: false, // ẩn tiêu đề mặc định
+        headerShown: false,
       })}
     >
-      <Tab.Screen name="Nhật kí" component={DiaryScreen} />
-      <Tab.Screen
-        name="Yêu thích"
-        component={FavouriteScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
-        <Tab.Screen name="Cá nhân" component={PersonalScreen}
-                    options={{
-                        headerShown: false,
-                    }}/>
-      <Tab.Screen name="Cài đặt" component={SettingScreen}
-                  options={{
-                      headerShown: false,
-                  }}/>
-
-
+      <Tab.Screen name="Nhật kí" component={DiaryNavigator} />
+      <Tab.Screen name="Yêu thích" component={FavouriteScreen} />
+        <Tab.Screen name="Cá nhân" component={PersonalScreen} />
+      <Tab.Screen name="Cài đặt" component={SettingNavigator} />
 
     </Tab.Navigator>
   );

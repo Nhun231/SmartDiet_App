@@ -24,7 +24,8 @@ import { useNavigation } from '@react-navigation/native';
 
 const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
-export default function PersonalScreen() {
+export default function PersonalScreen({ route }) {
+    const { plan } = route.params || {};
     const [waterIntake, setWaterIntake] = useState(0);
     const [currentBMI, setCurrentBMI] = useState({});
     const [weightHistory, setWeightHistory] = useState([]);
@@ -38,10 +39,9 @@ export default function PersonalScreen() {
 
     useEffect(() => {
         const fetchWeightHistory = async () => {
-            console.log(`${BASE_URL}/customer/calculate/history`);
             try {
                 const res = await axios.get(`${BASE_URL}/customer/calculate/history`);
-                
+
                 if (res.data.report && res.data.report.length > 0) {
                     setWeightHistory(res.data.report);
                     setCurrentBMI(res.data.report[res.data.report.length - 1]);
@@ -111,6 +111,18 @@ export default function PersonalScreen() {
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {/* HIỂN KẾ HOẠCH DINH DƯỠNG */}
+                {plan && (
+                    <View style={styles.dietPlanBox}>
+                        <Text style={styles.dietPlanText}>
+                            Kế hoạch dinh dưỡng tương ứng của bạn:
+                        </Text>
+                        <Text style={styles.dietPlanCalories}>
+                            {plan.dailyCalories} calo/ngày
+                        </Text>
+                    </View>
+                )}
+
                 {/* BMI Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
@@ -505,5 +517,16 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 4.65,
         elevation: 8,
+    },
+    dietPlanText: {
+        fontSize: 16,
+        color: '#000000ff',
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    dietPlanCalories: {
+        fontSize: 24,
+        color: '#059669',
+        fontWeight: 'bold',
     },
 });

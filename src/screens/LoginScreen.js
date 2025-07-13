@@ -3,7 +3,8 @@ import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import { PUBLIC_SERVER_ENDPOINT } from '@env';
+const BASE_URL = 'http://192.168.1.202:8080/smartdiet';
+
 
 export default function LoginScreen({ navigation, onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -18,17 +19,17 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
 
     setIsLoading(true);
     try {
-      const response = await axios.post(`${PUBLIC_SERVER_ENDPOINT}/auth/login`, {
-          emailOrName: email,
-          password: password
+      const response = await axios.post(`${BASE_URL}/auth/login`, {
+        emailOrName: email,
+        password: password
       });
 
       const { accessToken } = response.data;
-      
+
       if (accessToken) {
         // Decode the token to get user info
         const decodedUser = jwtDecode(accessToken);
-        
+
         // Save token to AsyncStorage
         await AsyncStorage.setItem("accessToken", accessToken);
         console.log("accessToken when login success", accessToken);
@@ -36,11 +37,11 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
         if (onLoginSuccess) {
           onLoginSuccess(accessToken, decodedUser);
         }
-        
+
         // Navigate to main app
-        navigation.reset({ 
-          index: 0, 
-          routes: [{ name: 'Main' }] 
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main' }]
         });
       } else {
         Alert.alert("Error", "Login failed - no token received");
@@ -57,39 +58,39 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>
-      <TextInput 
-        value={email} 
-        onChangeText={setEmail} 
-        placeholder="Email" 
+      <TextInput
+        value={email}
+        onChangeText={setEmail}
+        placeholder="Email"
         style={styles.input}
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <TextInput 
-        value={password} 
-        onChangeText={setPassword} 
-        placeholder="Password" 
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Password"
         style={styles.input}
         secureTextEntry
       />
-      <Button 
-        title={isLoading ? "Logging in..." : "Login"} 
+      <Button
+        title={isLoading ? "Logging in..." : "Login"}
         onPress={handleLogin}
         disabled={isLoading}
       />
-      <Button 
-        title="Go to Signup" 
-        onPress={() => navigation.navigate('Signup')} 
+      <Button
+        title="Go to Signup"
+        onPress={() => navigation.navigate('Signup')}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    padding: 20 
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20
   },
   title: {
     fontSize: 24,
@@ -97,11 +98,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20
   },
-  input: { 
-    borderWidth: 1, 
+  input: {
+    borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 5,
-    padding: 10, 
-    marginBottom: 10 
+    padding: 10,
+    marginBottom: 10
   },
 });
