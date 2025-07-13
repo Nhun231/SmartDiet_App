@@ -19,6 +19,8 @@
     "axios": "^1.10.0",
     "expo": "~53.0.17",
     "expo-secure-store": "~14.2.3",
+    "expo-dev-client": "~5.2.4",
+    "expo-notifications": "~0.31.4",
     "expo-status-bar": "~2.2.3",
     "jwt-decode": "^4.0.0",
     "react": "19.0.0",

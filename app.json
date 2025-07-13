@@ -20,7 +20,9 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.thanhnek.smartdietapp",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -28,5 +30,11 @@
     "plugins": [
       "expo-secure-store"
     ]
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a43fa6fe-4e36-426b-840d-808cfbc9ec5f"
+      }
+    }
   }
 }

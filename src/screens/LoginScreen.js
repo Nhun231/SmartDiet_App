@@ -3,8 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-const BASE_URL = 'http://192.168.1.202:8080/smartdiet';
-
+import { PUBLIC_SERVER_ENDPOINT } from '@env';
 
 export default function LoginScreen({ navigation, onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -19,9 +18,9 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
 
     setIsLoading(true);
     try {
-      const response = await axios.post(`${BASE_URL}/auth/login`, {
-        emailOrName: email,
-        password: password
+      const response = await axios.post(`${PUBLIC_SERVER_ENDPOINT}/auth/login`, {
+          emailOrName: email,
+          password: password
       });
 
       const { accessToken } = response.data;
@@ -73,8 +72,8 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
         style={styles.input}
         secureTextEntry
       />
-      <Button
-        title={isLoading ? "Logging in..." : "Login"}
+      <Button 
+        title={isLoading ? "Logging in..." : "Login"} 
         onPress={handleLogin}
         disabled={isLoading}
       />
