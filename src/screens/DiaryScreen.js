@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'http://192.168.1.202:8080/smartdiet';
+import { PUBLIC_SERVER_ENDPOINT } from '@env';
+const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 export default function DailyScreen({ navigation }) {
   const [loading, setLoading] = useState(true);

@@ -5,7 +5,8 @@ import { Alert } from "react-native";
 import { jwtDecode } from "jwt-decode";
 
 
-const BASE_URL = 'http://192.168.1.202:8080/smartdiet';
+import { PUBLIC_SERVER_ENDPOINT } from '@env';
+const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 const AuthContext = createContext(undefined);
 

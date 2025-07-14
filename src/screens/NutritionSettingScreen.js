@@ -9,7 +9,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 
-const BASE_URL = 'http://192.168.1.202:8080/smartdiet';
+import { PUBLIC_SERVER_ENDPOINT } from '@env';
+const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 export default function NutritionSettingScreen({ navigation }) {
     const [carbs, setCarbs] = useState(35);
@@ -23,9 +24,7 @@ export default function NutritionSettingScreen({ navigation }) {
             const fetchData = async () => {
                 try {
                     const token = await AsyncStorage.getItem('accessToken');
-                    const res = await axios.get(`${BASE_URL}/customer/calculate/newest`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
+                    const res = await axios.get(`${BASE_URL}/customer/calculate/newest`);
                     const data = res.data;
                     setCarbs(data.nutrition?.carbPercent || 35);
                     setProtein(data.nutrition?.proteinPercent || 35);
@@ -54,8 +53,6 @@ export default function NutritionSettingScreen({ navigation }) {
                 proteinPercent: protein,
                 fatPercent: fat,
                 fiberPercent: fiber,
-            }, {
-                headers: { Authorization: `Bearer ${token}` },
             });
 
             Alert.alert('Thành công', 'Đã lưu cài đặt dinh dưỡng', [

@@ -15,8 +15,9 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
     //   Alert.alert("Error", "Please fill in all fields");
     //   return;
     // }
-
+    console.log(`${PUBLIC_SERVER_ENDPOINT}/auth/login`)
     setIsLoading(true);
+
     try {
       const response = await axios.post(`${PUBLIC_SERVER_ENDPOINT}/auth/login`, {
           emailOrName: email,
@@ -40,7 +41,7 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
         // Navigate to main app
         navigation.reset({
           index: 0,
-          routes: [{ name: 'Main' }]
+          routes: [{ name: 'DiaryNavigator' }]
         });
       } else {
         Alert.alert("Error", "Login failed - no token received");

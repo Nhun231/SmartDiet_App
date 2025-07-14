@@ -6,10 +6,16 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'; // ✅ Thêm 
 
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
+import CreateIngredientScreen from './src/screens/CreateIngredientScreen.js';
 import MainTabNavigator from './src/navigation/MainTabNavigator.js';
 import AuthProvider from './src/context/AuthProvider';
 import WeightDetailScreen from './src/screens/WeightDetailScreen';
 import SmartDietChatbot from './src/screens/AIChatBotScreens.js';
+import CreateDishScreen from './src/screens/CreateDishScreen.js';
+import IngreDetailScreen from './src/screens/IngreDetailScreen.js';
+import DishDetailScreen from './src/screens/DishDetailScreen.js';
+import PickIngredientScreen from './src/screens/PickIngredientScreen.js'
+import MealEntryScreen from './src/screens/MealEntryScreen'; // import mới
 
 const Stack = createNativeStackNavigator();
 
@@ -35,24 +41,40 @@ export default function App() {
   return (
       <SafeAreaProvider>
     <NavigationContainer>
-
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isLoggedIn ? (
             <>
-          <Stack.Screen 
-            name="Main" 
-            component={() => (
-              <AuthProvider initialAuth={authData}>
-                <MainTabNavigator />
-              </AuthProvider>
-            )} 
-          />
+              <Stack.Screen name="Main">
+                {() => (
+                    <AuthProvider initialAuth={authData}>
+                      <MainTabNavigator />
+                    </AuthProvider>
+                )}
+              </Stack.Screen>
             <Stack.Screen name="WeightDetailScreen" component={WeightDetailScreen} />
             <Stack.Screen
                 name="ChatbotModal"
                 component={SmartDietChatbot}
                 options={{ presentation: 'modal' }}
             />
+          <Stack.Screen
+            name="DishDetail"
+            component={DishDetailScreen}
+            options={{ title: 'Chi tiết nguyên liệu' }}
+          />
+          <Stack.Screen name="PickIngredient" component={PickIngredientScreen} />
+          <Stack.Screen name="MealEntry" component={MealEntryScreen} />
+              <Stack.Screen
+                  name="CreateIngredient"
+                  component={CreateIngredientScreen}
+                  options={{ title: "Tạo thực phẩm mới" }}
+              />
+              <Stack.Screen name="CreateDish" component={CreateDishScreen} />
+              <Stack.Screen
+                  name="IngredientDetail"
+                  component={IngreDetailScreen}
+                  options={{ title: 'Chi tiết nguyên liệu' }}
+              />
       </>
         ) : (
           <>

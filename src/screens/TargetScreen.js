@@ -15,7 +15,8 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 
-const BASE_URL = 'http://192.168.1.202:8080/smartdiet';
+import { PUBLIC_SERVER_ENDPOINT } from '@env';
+const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 const targets = [
     { label: 'Giảm cân', value: 'lose', desc: 'Quản lý cân nặng bằng cách ăn uống thông minh hơn' },
     { label: 'Giữ nguyên cân nặng', value: 'keep', desc: 'Tối ưu cho sức khoẻ và vóc dáng hiện tại' },

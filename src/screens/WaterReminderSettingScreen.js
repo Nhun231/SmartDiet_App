@@ -11,10 +11,8 @@ import {
 import * as Notifications from 'expo-notifications';
 import TimePickerModal from '../components/TimePickerModal';
 import { generateSchedule } from '../utils/generateSchedule';
-import axiosInstance from '../api/axiosInstance';
-
-const API_BASE = 'http://192.168.1.11:8080/smartdiet/water-reminders';
-
+import axios from "axios";
+import {PUBLIC_SERVER_ENDPOINT} from "@env";
 const WaterScheduleScreen = () => {
     const [wakeUpTime, setWakeUpTime] = useState('06:00');
     const [sleepTime, setSleepTime] = useState('23:00');
@@ -29,7 +27,7 @@ const WaterScheduleScreen = () => {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const res = await axiosInstance.get('/water-reminders/reminder-schedule');
+                const res = await axios.get(`${PUBLIC_SERVER_ENDPOINT}/water-reminders/reminder-schedule`);
                 const data = res.data;
                 if (data) {
                     setWakeUpTime(data.wakeUpTime);
@@ -114,7 +112,7 @@ const WaterScheduleScreen = () => {
         }
 
         try {
-            await axiosInstance.post('/water-reminders/reminder-setting', {
+            await axios.post(`${PUBLIC_SERVER_ENDPOINT}/water-reminders/reminder-setting`, {
                 wakeUpTime,
                 sleepTime,
                 reminderGap,

@@ -16,7 +16,8 @@ import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const BASE_URL = 'http://192.168.1.202:8080/smartdiet';
+import { PUBLIC_SERVER_ENDPOINT } from '@env';
+const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 const activityOptions = [
     { label: 'Ít', value: 'ít' },

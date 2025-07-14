@@ -18,10 +18,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from "axios";
-import { PUBLIC_SERVER_ENDPOINT } from '@env';
+
 import WeightChart from '../components/WeightChart';
 import { useNavigation } from '@react-navigation/native';
-
+import { PUBLIC_SERVER_ENDPOINT } from '@env';
 const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 export default function PersonalScreen({ route }) {
@@ -39,6 +39,7 @@ export default function PersonalScreen({ route }) {
 
     useEffect(() => {
         const fetchWeightHistory = async () => {
+            console.log(`${BASE_URL}/customer/calculate/history`)
             try {
                 const res = await axios.get(`${BASE_URL}/customer/calculate/history`);
 
