@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import LoginScreen from './src/screens/LoginScreen';
-import SignupScreen from './src/screens/SignupScreen';
+import RegisterScreen from './src/screens/RegisterScreen.js';
 import MainTabNavigator from './src/navigation/MainTabNavigator.js';
 import AuthProvider from './src/context/AuthProvider';
 
@@ -51,7 +51,7 @@ export default function App() {
                 <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} />
               )}
             />
-            <Stack.Screen name="Signup" component={SignupScreen} />
+            <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
           </>
         )}
 
