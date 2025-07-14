@@ -84,6 +84,7 @@ export default function HealthTrackingScreen() {
   const [dailyCaloriesTarget, setDailyCaloriesTarget] = useState(0);
   const [caloriesConsumed, setCaloriesConsumed] = useState(0);
   const [macrosConsumed, setMacrosConsumed] = useState({ carbs: 0, protein: 0, fat: 0, fiber: 0 });
+  const [targetMacros, setTargetMacros] = useState({ carbs: 0, protein: 0, fat: 0, fiber: 0 }); 
   const [loading, setLoading] = useState(true);
   const [isWaterGoalModalVisible, setIsWaterGoalModalVisible] = useState(false);
   const [tempWaterGoalInput, setTempWaterGoalInput] = useState('');
@@ -248,11 +249,33 @@ export default function HealthTrackingScreen() {
           fiber: totalFiberForDay
         });
 
-        // Removed targetMacros fetching as it's no longer used
+        try {
+          const targetMacrosResponse = await axios.get(`${BASE_URL}/customer/calculate/newest`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+            timeout: 10000,
+          });
+          if (targetMacrosResponse.status === 200 && targetMacrosResponse.data) {
+            const data = targetMacrosResponse.data;
+            setTargetMacros({
+              carbs: data.carbs || 0,
+              protein: data.protein || 0,
+              fat: data.fat || 0,
+              fiber: data.fiber || 0,
+            });
+          } else {
+            console.warn("Không tìm thấy dữ liệu tính toán mục tiêu, sử dụng giá trị mặc định.");
+            setTargetMacros({ carbs: 0, protein: 0, fat: 0, fiber: 0 });
+          }
+        } catch (targetError) {
+          console.error('Error fetching target macros:', targetError.response ? targetError.response.data : targetError.message);
+          setTargetMacros({ carbs: 0, protein: 0, fat: 0, fiber: 0 });
+        }
+
       } catch (overallError) {
         console.error('Overall error in fetchMealsAndCalculateTotals:', overallError.response ? overallError.response.data : overallError.message);
         setCaloriesConsumed(0);
         setMacrosConsumed({ carbs: 0, protein: 0, fat: 0, fiber: 0 });
+        setTargetMacros({ carbs: 0, protein: 0, fat: 0, fiber: 0 });
       } finally {
         setLoading(false);
       }
