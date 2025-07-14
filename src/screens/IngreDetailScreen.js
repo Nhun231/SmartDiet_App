@@ -39,7 +39,12 @@ export default function IngredientDetailScreen({ route, navigation }) {
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const formattedDate = today.toISOString().split("T")[0];
+            const formattedDate =
+                today.getFullYear() +
+                '-' +
+                String(today.getMonth() + 1).padStart(2, '0') +
+                '-' +
+                String(today.getDate()).padStart(2, '0');
 
             // Lấy meal hiện tại (nếu có)
             const mealRes = await axios.get(`${PUBLIC_SERVER_ENDPOINT}/meals/by-date`, {
@@ -433,11 +438,11 @@ const styles = StyleSheet.create({
     categoryText: { fontSize: 14, color: "#333" },
     categoryTextSelected: { color: "#fff", fontWeight: "bold" },
 
-    modalOverlay: {
-        flex: 1,
-        justifyContent: "flex-end",
-        backgroundColor: "rgba(0,0,0,0.3)",
-    },
+    // modalOverlay: {
+    //     flex: 1,
+    //     justifyContent: "flex-end",
+    //     backgroundColor: "rgba(0,0,0,0.3)",
+    // },
 
     bottomSheet: {
         backgroundColor: "#fff",

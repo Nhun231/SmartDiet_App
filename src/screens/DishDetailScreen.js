@@ -35,7 +35,12 @@ export default function DishDetailScreen({ route, navigation }) {
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const formattedDate = today.toISOString().split("T")[0];
+            const formattedDate =
+                today.getFullYear() +
+                '-' +
+                String(today.getMonth() + 1).padStart(2, '0') +
+                '-' +
+                String(today.getDate()).padStart(2, '0');
 
             const newDish = {
                 dishId: dishData._id,

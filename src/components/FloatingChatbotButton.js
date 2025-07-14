@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     container: {
         position: 'absolute',
         bottom: 120,
-        right: 20,
+        left: 20,
         zIndex: 999,
     },
     fab: {

@@ -94,7 +94,12 @@ export default function MealEntryScreen() {
             const userId = decoded.id;
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const formattedDate = today.toISOString().split("T")[0];
+            const formattedDate =
+                today.getFullYear() +
+                '-' +
+                String(today.getMonth() + 1).padStart(2, '0') +
+                '-' +
+                String(today.getDate()).padStart(2, '0');
 
             const res = await axios.get(`${PUBLIC_SERVER_ENDPOINT}/meals/by-date`, {
                 params: { date: formattedDate, mealType, userId },
