@@ -90,12 +90,12 @@ export default function SmartDietChatbot({ navigation }) {
 
     return (
         <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor="#16a34a" />
             <KeyboardAvoidingView
-                style={{ flex: 1 }}
+                style={styles.wrapper}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40} // try increasing this if needed
+                keyboardVerticalOffset={25}
             >
-                <StatusBar barStyle="light-content" backgroundColor="#16a34a" />
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Ionicons name="close" size={24} color="#fff" />
@@ -108,7 +108,6 @@ export default function SmartDietChatbot({ navigation }) {
                     style={styles.chatBox}
                     contentContainerStyle={styles.chatContent}
                     showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
                 >
                     {messages.length === 0 && (
                         <View style={styles.welcomeBox}>
@@ -223,11 +222,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     chatBox: { flex: 1 },
-    chatContent: {
-        padding: 16,
-        paddingBottom: 80,
-        flexGrow: 1,
-    },
+    chatContent: { padding: 16, paddingBottom: 80 },
     welcomeBox: { alignItems: "center", paddingVertical: 24 },
     welcomeTitle: { fontSize: 18, fontWeight: "bold", color: "#166534", marginVertical: 8 },
     welcomeText: { textAlign: "center", color: "#16a34a", paddingHorizontal: 20 },

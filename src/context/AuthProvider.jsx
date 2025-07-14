@@ -126,7 +126,7 @@ const AuthProvider = ({ children, initialAuth = null }) => {
 
   const logout = async () => {
     setAuth({ accessToken: null, user: null });
-    await AsyncStorage.removeItem("accessToken");
+    await AsyncStorage.removeItem("/");
   };
 
   return (

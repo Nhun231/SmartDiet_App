@@ -8,7 +8,7 @@ import TargetScreen from '../screens/TargetScreen';
 import NutritionSettingScreen from '../screens/NutritionSettingScreen'
 import PersonalScreen from '../screens/PersonalScreen';
 import InitialCalculateScreen from '../screens/InitialCalculateScreen'
-
+import WaterScheduleScreen from './../screens/WaterReminderSettingScreen';
 const Stack = createNativeStackNavigator();
 
 export default function SettingStackNavigator() {
@@ -21,6 +21,7 @@ export default function SettingStackNavigator() {
             <Stack.Screen name="NutritionSetting" component={NutritionSettingScreen} />
             <Stack.Screen name="PersonalScreen" component={PersonalScreen} />
             <Stack.Screen name="InitialCalculateScreen" component={InitialCalculateScreen} />
+            <Stack.Screen name="WaterScheduleScreen" component={WaterScheduleScreen} />
         </Stack.Navigator>
     );
 }

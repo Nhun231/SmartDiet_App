@@ -11,15 +11,14 @@ export default function SettingScreen({ navigation }) {
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('accessToken');
     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
+
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.sectionTitle}>Cơ bản</Text>
-
-      <MenuItem icon="translate" text="Cài đặt ngôn ngữ" iconColor="#4CAF50" />
       <MenuItem
         icon="account"
         text="Cập nhật chỉ số trao đổi chất (BMR)"
@@ -32,17 +31,10 @@ export default function SettingScreen({ navigation }) {
         iconColor="#DAA520"
         onPress={() => navigation.navigate('NutritionSetting')}
       />
-      <MenuItem icon="water" text="Tạo mới lịch uống nước" iconColor="#2196F3" />
+      <MenuItem icon="water" text="Tạo mới lịch uống nước" iconColor="#2196F3"
+        onPress={() => navigation.navigate('WaterScheduleScreen')} />
       <MenuItem icon="cog" text="Cài đặt tài khoản" iconColor="#9C27B0"
         onPress={() => navigation.navigate('InitialCalculateScreen')} />
-      <Text style={styles.sectionTitle}>Trợ giúp</Text>
-      <MenuItem icon="message" text="Gửi phản hồi" iconColor="#00BCD4" />
-      <MenuItem icon="information" text="Về chúng tôi" iconColor="#795548" />
-
-      <Text style={styles.sectionTitle}>Mạng xã hội</Text>
-      <MenuItem icon="account-plus" text="Mời thêm bạn bè" iconColor="#8BC34A" />
-      <MenuItem icon="share-variant" text="Đánh giá ứng dụng" iconColor="#FF5722" />
-
       <View style={styles.switchContainer}>
         <Text style={styles.switchText}>Màn hình tối (dark mode)</Text>
         <Switch

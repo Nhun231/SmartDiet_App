@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5', 
   },
   header: { 
-    paddingTop: 15,
+
     paddingBottom: 40,
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
