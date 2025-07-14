@@ -19,6 +19,8 @@ import { jwtDecode } from 'jwt-decode';
 import { Ionicons } from '@expo/vector-icons';
 import { PUBLIC_SERVER_ENDPOINT } from '@env';
 
+const BASE_URL = PUBLIC_SERVER_ENDPOINT;
+
 export default function LoginScreen({ navigation, onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -123,99 +125,99 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
   };
 
   return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#00D4AA" />
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-            <Ionicons name="chevron-back" size={28} color="#000" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Đăng nhập với email</Text>
-          <View style={styles.headerSpacer} />
-        </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#00D4AA" />
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+          <Ionicons name="chevron-back" size={28} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Đăng nhập với email</Text>
+        <View style={styles.headerSpacer} />
+      </View>
 
-        <KeyboardAvoidingView
-            style={styles.keyboardAvoidingView}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.inputContainer}>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="mail-outline" size={20} color="#999" style={styles.inputIcon} />
-                <TextInput
-                    style={[styles.textInput, emailError ? styles.textInputError : null]}
-                    placeholder="Email"
-                    placeholderTextColor="#999"
-                    value={email}
-                    onChangeText={handleEmailChange}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!isLoading}
-                />
-                {email && validateEmail(email.trim()) && (
-                    <Ionicons name="checkmark-circle" size={20} color="#00D4AA" style={styles.validIcon} />
-                )}
-              </View>
-              {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
-
-              <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed-outline" size={20} color="#999" style={styles.inputIcon} />
-                <TextInput
-                    style={[styles.textInput, passwordError ? styles.textInputError : null]}
-                    placeholder="Mật khẩu"
-                    placeholderTextColor="#999"
-                    value={password}
-                    onChangeText={handlePasswordChange}
-                    secureTextEntry={!isPasswordVisible}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!isLoading}
-                />
-                <TouchableOpacity
-                    style={styles.eyeButton}
-                    onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                    disabled={isLoading}
-                >
-                  <Ionicons
-                      name={isPasswordVisible ? 'eye-outline' : 'eye-off-outline'}
-                      size={20}
-                      color="#999"
-                  />
-                </TouchableOpacity>
-              </View>
-              {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
-            </View>
-
-            <TouchableOpacity
-                style={[styles.loginButton, isLoading ? styles.loginButtonDisabled : null]}
-                onPress={handleLogin}
-                disabled={isLoading}
-            >
-              {isLoading ? (
-                  <View style={styles.loadingContainer}>
-                    <Text style={styles.loginButtonText}>Đang đăng nhập...</Text>
-                  </View>
-              ) : (
-                  <Text style={styles.loginButtonText}>Đăng nhập</Text>
+          <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="mail-outline" size={20} color="#999" style={styles.inputIcon} />
+              <TextInput
+                style={[styles.textInput, emailError ? styles.textInputError : null]}
+                placeholder="Email"
+                placeholderTextColor="#999"
+                value={email}
+                onChangeText={handleEmailChange}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!isLoading}
+              />
+              {email && validateEmail(email.trim()) && (
+                <Ionicons name="checkmark-circle" size={20} color="#00D4AA" style={styles.validIcon} />
               )}
-            </TouchableOpacity>
+            </View>
+            {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
-            <TouchableOpacity
-                style={styles.registerLink}
-                onPress={handleRegister}
+            <View style={styles.inputWrapper}>
+              <Ionicons name="lock-closed-outline" size={20} color="#999" style={styles.inputIcon} />
+              <TextInput
+                style={[styles.textInput, passwordError ? styles.textInputError : null]}
+                placeholder="Mật khẩu"
+                placeholderTextColor="#999"
+                value={password}
+                onChangeText={handlePasswordChange}
+                secureTextEntry={!isPasswordVisible}
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!isLoading}
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
                 disabled={isLoading}
-            >
-              <Text style={styles.registerLinkText}>Đăng ký tài khoản mới</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+              >
+                <Ionicons
+                  name={isPasswordVisible ? 'eye-outline' : 'eye-off-outline'}
+                  size={20}
+                  color="#999"
+                />
+              </TouchableOpacity>
+            </View>
+            {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.loginButton, isLoading ? styles.loginButtonDisabled : null]}
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loginButtonText}>Đang đăng nhập...</Text>
+              </View>
+            ) : (
+              <Text style={styles.loginButtonText}>Đăng nhập</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.registerLink}
+            onPress={handleRegister}
+            disabled={isLoading}
+          >
+            <Text style={styles.registerLinkText}>Đăng ký tài khoản mới</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

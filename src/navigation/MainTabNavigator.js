@@ -4,17 +4,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
 import FavouriteScreen from '../screens/FavouriteScreen';
 import PersonalScreen from "../screens/PersonalScreen";
-import WaterReminderSettingScreen from "../screens/WaterReminderSettingScreen";
 import DiaryScreen from "../screens/DiaryScreen";
 import FloatingChatbotButton from "../components/FloatingChatbotButton";
 import SettingNavigator from './SettingNavigator';
-import DiaryNavigator from './DiaryNavigator';
 
 const Tab = createBottomTabNavigator();
 
 export default function MainTabNavigator() {
   return (
-    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
@@ -41,9 +39,7 @@ export default function MainTabNavigator() {
         <Tab.Screen name="Yêu thích" component={FavouriteScreen} />
         <Tab.Screen name="Cá nhân" component={PersonalScreen} />
         <Tab.Screen name="Cài đặt" component={SettingNavigator} />
-        <Tab.Screen name="Cài đặt lịch uống nước" component={WaterReminderSettingScreen} />
       </Tab.Navigator>
-
       <FloatingChatbotButton />
     </View>
   );
