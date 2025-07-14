@@ -34,7 +34,7 @@ export default function PersonalScreen({ route }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigation = useNavigation();
 
-    const [waterData, setWaterData] = useState({ consumed: 0, target: 2500, history: [] });
+    const [waterData, setWaterData] = useState({ consumed: 0, target: 2000, history: [] });
     const [isLoadingWater, setIsLoadingWater] = useState(false);
 
     // const incrementWater = () => setWaterIntake((prev) => prev + 250);
@@ -62,11 +62,7 @@ export default function PersonalScreen({ route }) {
       const fetchWaterData = async () => {
         setIsLoadingWater(true);
         try {
-          const res = await axios.get(`${BASE_URL}/smartdiet/water-reminders/water-data`, {
-            headers: {
-              Authorization: `Bearer ${yourAccessToken}` // Make sure to use the user's token
-            }
-          });
+          const res = await axios.get(`${BASE_URL}/water/water-data`);
           setWaterData(res.data);
         } catch (error) {
           console.log('Error fetching water data:', error);
@@ -80,13 +76,8 @@ export default function PersonalScreen({ route }) {
     const modifyWater = async (amount) => {
       if (amount < 0 && waterData.consumed < Math.abs(amount)) return; // Prevent negative total
       try {
-        const res = await axios.post(`${BASE_URL}/smartdiet/water-reminders/add-water`, 
+        const res = await axios.post(`${BASE_URL}/water/add-water`,
           { amount: Math.abs(amount) }, // backend expects positive amount
-          {
-            headers: {
-              Authorization: `Bearer ${yourAccessToken}`
-            }
-          }
         );
         setWaterData(res.data);
       } catch (error) {

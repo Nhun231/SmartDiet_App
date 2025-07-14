@@ -3,25 +3,34 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PUBLIC_SERVER_ENDPOINT } from '@env';
+import { useAuth } from '../context/AuthProvider';
 const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 export default function StartupScreen({ navigation }) {
+  const { logout } = useAuth();
+
   useEffect(() => {
     const checkCalculateData = async () => {
       try {
         const token = await AsyncStorage.getItem('accessToken');
         const res = await axios.get(`${BASE_URL}/customer/calculate/newest`);
+        console.log(res)
         if (res.data?.tdee) {
           navigation.replace('Main');
         } else {
           navigation.replace('InitialCalculateScreen');
         }
       } catch (error) {
-        navigation.replace('InitialCalculateScreen');
-      }
+        console.log(error)
+        if (error.response && error.response.status === 401) {
+          await logout();
+        } else {
+          navigation.replace('InitialCalculateScreen');
+        }
     };
+  }
     checkCalculateData();
-  }, [navigation]);
+  }, [navigation, logout]);
 
   return (
     <View style={styles.loadingContainer}>

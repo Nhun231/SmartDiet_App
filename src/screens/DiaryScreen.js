@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, StatusBar, ScrollView, TouchableOpacity, Modal, Dimensions, TextInput, Alert } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, StatusBar, ScrollView, TouchableOpacity, Modal, Dimensions, TextInput, Alert, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import CircularTracker from '../components/CircularTracker';
@@ -366,6 +366,7 @@ export default function HealthTrackingScreen() {
   const caloriesRemaining = Math.max(0, dailyCaloriesTarget - caloriesConsumed);
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#10b981' }}>
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#3ECF8C" />
       <ScrollView style={styles.scrollViewContent}>
@@ -543,6 +544,7 @@ export default function HealthTrackingScreen() {
         </View>
       </Modal>
     </View>
+    </SafeAreaView>
   );
 }
 

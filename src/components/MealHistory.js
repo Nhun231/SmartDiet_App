@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PUBLIC_SERVER_ENDPOINT } from '@env';
 
-const BASE_URL = "http://192.168.1.29:8080/smartdiet";
+const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 const MealHistory = ({ selectedDate }) => {
   const [meals, setMeals] = useState([]);

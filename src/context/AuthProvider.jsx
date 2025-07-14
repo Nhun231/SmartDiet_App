@@ -124,8 +124,13 @@ const AuthProvider = ({ children, initialAuth = null }) => {
     };
   }, [isRefreshing]);
 
+  const logout = async () => {
+    setAuth({ accessToken: null, user: null });
+    await AsyncStorage.removeItem("accessToken");
+  };
+
   return (
-    <AuthContext.Provider value={{ ...auth, setAuth }}>
+    <AuthContext.Provider value={{ ...auth, setAuth, logout }}>
       {children}
     </AuthContext.Provider>
   );

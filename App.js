@@ -41,58 +41,58 @@ export default function App() {
   if (isLoggedIn === null) return null;
 
   return (
+    <AuthProvider>
       <SafeAreaProvider>
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isLoggedIn ? (
-            <>
-              <Stack.Screen name="Startup" component={StartupScreen} />
-              <Stack.Screen name="Main">
-                {() => (
-                    <AuthProvider initialAuth={authData}>
-                      <MainTabNavigator />
-                    </AuthProvider>
-                )}
-              </Stack.Screen>
-            <Stack.Screen name="WeightDetailScreen" component={WeightDetailScreen} />
-            <Stack.Screen
-                name="ChatbotModal"
-                component={SmartDietChatbot}
-                options={{ presentation: 'modal' }}
-            />
-          <Stack.Screen
-            name="DishDetail"
-            component={DishDetailScreen}
-            options={{ title: 'Chi tiết nguyên liệu' }}
-          />
-          <Stack.Screen name="PickIngredient" component={PickIngredientScreen} />
-          <Stack.Screen name="MealEntry" component={MealEntryScreen} />
-              <Stack.Screen
-                  name="CreateIngredient"
-                  component={CreateIngredientScreen}
-                  options={{ title: "Tạo thực phẩm mới" }}
-              />
-              <Stack.Screen name="CreateDish" component={CreateDishScreen} />
-              <Stack.Screen
-                  name="IngredientDetail"
-                  component={IngreDetailScreen}
-                  options={{ title: 'Chi tiết nguyên liệu' }}
-              />
-              <Stack.Screen name="InitialCalculateScreen" component={InitialCalculateScreen} />
-      </>
-        ) : (
-          <>
-            <Stack.Screen 
-              name="Login" 
-              component={(props) => (
-                <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} />
-              )} 
-            />
-            <Stack.Screen name="Signup" component={SignupScreen} />
-          </>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
-</SafeAreaProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {isLoggedIn ? (
+                <>
+                  <Stack.Screen name="Startup" component={StartupScreen} />
+                  <Stack.Screen name="Main">
+                    {() => (
+                        <MainTabNavigator />
+                    )}
+                  </Stack.Screen>
+                  <Stack.Screen name="WeightDetailScreen" component={WeightDetailScreen} />
+                  <Stack.Screen
+                      name="ChatbotModal"
+                      component={SmartDietChatbot}
+                      options={{ presentation: 'modal' }}
+                  />
+                  <Stack.Screen
+                    name="DishDetail"
+                    component={DishDetailScreen}
+                    options={{ title: 'Chi tiết nguyên liệu' }}
+                  />
+                  <Stack.Screen name="PickIngredient" component={PickIngredientScreen} />
+                  <Stack.Screen name="MealEntry" component={MealEntryScreen} />
+                  <Stack.Screen
+                      name="CreateIngredient"
+                      component={CreateIngredientScreen}
+                      options={{ title: "Tạo thực phẩm mới" }}
+                  />
+                  <Stack.Screen name="CreateDish" component={CreateDishScreen} />
+                  <Stack.Screen
+                      name="IngredientDetail"
+                      component={IngreDetailScreen}
+                      options={{ title: 'Chi tiết nguyên liệu' }}
+                  />
+                  <Stack.Screen name="InitialCalculateScreen" component={InitialCalculateScreen} />
+            </>
+              ) : (
+                <>
+                  <Stack.Screen 
+                    name="Login" 
+                    component={(props) => (
+                      <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} />
+                    )} 
+                  />
+                  <Stack.Screen name="Signup" component={SignupScreen} />
+                </>
+              )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </AuthProvider>
   );
 }
