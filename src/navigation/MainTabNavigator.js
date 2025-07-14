@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import FavouriteScreen from '../screens/FavouriteScreen';
 import PersonalScreen from "../screens/PersonalScreen";
 import WaterReminderSettingScreen from "../screens/WaterReminderSettingScreen";
+import DiaryScreen from "../screens/DiaryScreen";
 import FloatingChatbotButton from "../components/FloatingChatbotButton";
 import SettingNavigator from './SettingNavigator';
 import DiaryNavigator from './DiaryNavigator';
@@ -36,7 +37,7 @@ export default function MainTabNavigator() {
           headerShown: false,
         })}
       >
-        <Tab.Screen name="Nhật kí" component={DiaryNavigator} />
+        <Tab.Screen name="Nhật kí" component={DiaryScreen} />
         <Tab.Screen name="Yêu thích" component={FavouriteScreen} />
         <Tab.Screen name="Cá nhân" component={PersonalScreen} />
         <Tab.Screen name="Cài đặt" component={SettingNavigator} />

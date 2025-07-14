@@ -34,8 +34,11 @@ export default function PersonalScreen({ route }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigation = useNavigation();
 
-    const incrementWater = () => setWaterIntake((prev) => prev + 250);
-    const decrementWater = () => setWaterIntake((prev) => Math.max(0, prev - 250));
+    const [waterData, setWaterData] = useState({ consumed: 0, target: 2500, history: [] });
+    const [isLoadingWater, setIsLoadingWater] = useState(false);
+
+    // const incrementWater = () => setWaterIntake((prev) => prev + 250);
+    // const decrementWater = () => setWaterIntake((prev) => Math.max(0, prev - 250));
 
     useEffect(() => {
         const fetchWeightHistory = async () => {
@@ -54,6 +57,45 @@ export default function PersonalScreen({ route }) {
         };
         fetchWeightHistory();
     }, []);
+
+    useEffect(() => {
+      const fetchWaterData = async () => {
+        setIsLoadingWater(true);
+        try {
+          const res = await axios.get(`${BASE_URL}/smartdiet/water-reminders/water-data`, {
+            headers: {
+              Authorization: `Bearer ${yourAccessToken}` // Make sure to use the user's token
+            }
+          });
+          setWaterData(res.data);
+        } catch (error) {
+          console.log('Error fetching water data:', error);
+        } finally {
+          setIsLoadingWater(false);
+        }
+      };
+      fetchWaterData();
+    }, []);
+
+    const modifyWater = async (amount) => {
+      if (amount < 0 && waterData.consumed < Math.abs(amount)) return; // Prevent negative total
+      try {
+        const res = await axios.post(`${BASE_URL}/smartdiet/water-reminders/add-water`, 
+          { amount: Math.abs(amount) }, // backend expects positive amount
+          {
+            headers: {
+              Authorization: `Bearer ${yourAccessToken}`
+            }
+          }
+        );
+        setWaterData(res.data);
+      } catch (error) {
+        console.log('Error updating water intake:', error);
+      }
+    };
+
+    const incrementWater = () => modifyWater(250);
+    const decrementWater = () => modifyWater(-250);
 
     const openWeightModal = () => {
         setNewWeight(currentBMI.weight);
@@ -164,23 +206,23 @@ export default function PersonalScreen({ route }) {
                 {/* Water Intake Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Bạn nên uống bao nhiều nước</Text>
+                        <Text style={styles.sectionTitle}>Bạn nên uống bao nhiêu nước</Text>
                         <Ionicons name="ellipsis-horizontal" size={20} color="#9ca3af" />
                     </View>
 
                     <View style={styles.card}>
                         <View style={styles.waterCenter}>
                             <View style={styles.waterValueRow}>
-                                <Text style={styles.waterValue}>{waterIntake}</Text>
-                                <Text style={styles.waterUnit}>ml</Text>
+                                <Text style={styles.waterValue}>{waterData.consumed}</Text>
+                                <Text style={styles.waterUnit}>ml / {waterData.target}ml</Text>
                             </View>
-                            <Text style={styles.waterLabel}>Lượng nước bạn cần uống</Text>
-
+                            <Text style={styles.waterLabel}>Lượng nước bạn đã uống hôm nay</Text>
                             <View style={styles.waterControls}>
                                 <TouchableOpacity
                                     style={styles.waterButton}
                                     onPress={decrementWater}
                                     activeOpacity={0.7}
+                                    disabled={waterData.consumed < 250}
                                 >
                                     <Ionicons name="remove" size={20} color="#06b6d4" />
                                 </TouchableOpacity>
@@ -193,19 +235,7 @@ export default function PersonalScreen({ route }) {
                                 </TouchableOpacity>
                             </View>
                         </View>
-
-                        <View style={styles.waterInfo}>
-                            <View style={styles.infoRow}>
-                                <Ionicons name="time-outline" size={16} color="#9ca3af" />
-                                <Text style={styles.infoText}>Lần cuối cùng</Text>
-                            </View>
-                            <View style={styles.infoRow}>
-                                <Ionicons name="notifications-outline" size={16} color="#f59e0b" />
-                                <Text style={[styles.infoText, { color: '#f59e0b' }]}>
-                                    Bật tính năng thông báo
-                                </Text>
-                            </View>
-                        </View>
+                        {/* Optionally, show history here */}
                     </View>
                 </View>
 

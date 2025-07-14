@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SafeAreaProvider } from 'react-native-safe-area-context'; // ✅ Thêm dòng này
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
@@ -16,6 +16,8 @@ import IngreDetailScreen from './src/screens/IngreDetailScreen.js';
 import DishDetailScreen from './src/screens/DishDetailScreen.js';
 import PickIngredientScreen from './src/screens/PickIngredientScreen.js'
 import MealEntryScreen from './src/screens/MealEntryScreen'; // import mới
+import InitialCalculateScreen from './src/screens/InitialCalculateScreen';
+import StartupScreen from './src/screens/StartupScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -44,6 +46,7 @@ export default function App() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isLoggedIn ? (
             <>
+              <Stack.Screen name="Startup" component={StartupScreen} />
               <Stack.Screen name="Main">
                 {() => (
                     <AuthProvider initialAuth={authData}>
@@ -75,6 +78,7 @@ export default function App() {
                   component={IngreDetailScreen}
                   options={{ title: 'Chi tiết nguyên liệu' }}
               />
+              <Stack.Screen name="InitialCalculateScreen" component={InitialCalculateScreen} />
       </>
         ) : (
           <>
