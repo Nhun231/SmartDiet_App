@@ -3,6 +3,8 @@ import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios"
 import { jwtDecode } from "jwt-decode";
+const BASE_URL = 'http://192.168.42.165:8080/smartdiet';
+
 
 export default function LoginScreen({ navigation, onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -17,7 +19,7 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
 
     setIsLoading(true);
     try {
-      const response = await axios.post(`http://192.168.1.11:8080/smartdiet/auth/login`, {
+      const response = await axios.post(`${BASE_URL}/auth/login`, {
         emailOrName: email,
         password: password
       });

@@ -10,12 +10,15 @@ import {
 } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import TimePickerModal from '../components/TimePickerModal';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import WaterGlassImage from '../../assets/waterglass.png';
 import { generateSchedule } from '../utils/generateSchedule';
-import axiosInstance from '../api/axiosInstance';
+import axios from 'axios';
+import { Image } from 'react-native';
 
-const API_BASE = 'http://192.168.1.11:8080/smartdiet/water-reminders';
+const BASE_URL = 'http://192.168.42.165:8080/smartdiet';
 
-const WaterScheduleScreen = () => {
+const WaterScheduleScreen = ({ navigation }) => {
     const [wakeUpTime, setWakeUpTime] = useState('06:00');
     const [sleepTime, setSleepTime] = useState('23:00');
     const [reminderGap, setReminderGap] = useState(90);
@@ -29,8 +32,10 @@ const WaterScheduleScreen = () => {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const res = await axiosInstance.get('/water-reminders/reminder-schedule');
+                console.log("Fetching data...")
+                const res = await axios.get(`${BASE_URL}/water-reminders/reminder-schedule`);
                 const data = res.data;
+                console.log("data", res.data)
                 if (data) {
                     setWakeUpTime(data.wakeUpTime);
                     setSleepTime(data.sleepTime);
@@ -38,7 +43,8 @@ const WaterScheduleScreen = () => {
                     setSchedule(data.schedule);
                 }
             } catch (err) {
-                console.log('❌ Lỗi fetch schedule:', err);
+                console.log("có lỗi gòi")
+                console.log('❌ Lỗi fetch schedule:', err?.response?.data || err.message || err);
                 const defaultSchedule = generateSchedule(wakeUpTime, sleepTime, reminderGap);
                 setSchedule(defaultSchedule);
             }
@@ -114,7 +120,7 @@ const WaterScheduleScreen = () => {
         }
 
         try {
-            await axiosInstance.post('/water-reminders/reminder-setting', {
+            await axios.post(`${BASE_URL}/water-reminders/reminder-setting`, {
                 wakeUpTime,
                 sleepTime,
                 reminderGap,
@@ -131,9 +137,7 @@ const WaterScheduleScreen = () => {
 
     const renderWaterGlass = (item, realIndex) => (
         <View key={realIndex} style={styles.glassContainer}>
-            <View style={styles.glassIcon}>
-                <View style={styles.water} />
-            </View>
+            <Image source={WaterGlassImage} style={styles.glassImage} />
             <Text style={styles.amount}>{item.amount}</Text>
             <TouchableOpacity onPress={() => handleTimePress(realIndex)}>
                 <Text style={styles.time}>{item.time}</Text>
@@ -141,8 +145,16 @@ const WaterScheduleScreen = () => {
         </View>
     );
 
+
     return (
         <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Icon name="arrow-left" size={24} color="#fff" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Cài đặt lịch uống nước</Text>
+                <View style={{ width: 24 }} />
+            </View>
             <View style={styles.headerSingleLine}>
                 <Text style={styles.sleepLabel}>Lịch trình ngủ</Text>
                 <View style={styles.sleepTimes}>
@@ -188,12 +200,10 @@ const WaterScheduleScreen = () => {
                             .map((item, i) => renderWaterGlass(item, rowIndex * 4 + i))}
                     </View>
                 ))}
+                <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                    <Text style={styles.saveButtonText}>Lưu</Text>
+                </TouchableOpacity>
             </ScrollView>
-
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>Lưu</Text>
-            </TouchableOpacity>
-
             <TimePickerModal
                 key={selectedIndex}
                 visible={showTimePicker}
@@ -216,6 +226,24 @@ const WaterScheduleScreen = () => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f5f5f5' },
+    header: {
+        backgroundColor: '#4CAF50',
+        paddingTop: 50,
+        paddingBottom: 20,
+        paddingHorizontal: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
+    },
+    glassImage: {
+        width: 40,
+        height: 60,
+        resizeMode: 'contain',
+        marginBottom: 8,
+    },
+    headerTitle: { color: '#fff', fontSize: 22, fontWeight: 'bold' },
     headerSingleLine: {
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
         paddingHorizontal: 20, paddingVertical: 15, backgroundColor: '#fff',

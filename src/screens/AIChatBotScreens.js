@@ -17,7 +17,7 @@ import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
-const API_URL = "http://192.168.1.11:8080/smartdiet/ai/chats";
+const BASE_URL = "10.10.2.150:8080/smartdiet/ai/chats";
 
 export default function SmartDietChatbot({ navigation }) {
     const [messages, setMessages] = useState([]);
@@ -53,7 +53,7 @@ export default function SmartDietChatbot({ navigation }) {
         setIsLoading(true);
 
         try {
-            const res = await axios.post(API_URL, { prompt: input });
+            const res = await axios.post(BASE_URL, { prompt: input });
             const replyText = res.data || "I didn't understand that, please try again.";
             const reply = {
                 id: Date.now().toString() + "-bot",

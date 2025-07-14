@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, useContext, createContext } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useContext,
+  createContext,
+} from "react";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
@@ -17,7 +23,9 @@ export const useAuth = () => {
 };
 
 const AuthProvider = ({ children, initialAuth = null }) => {
-  const [auth, setAuth] = useState(initialAuth || { accessToken: null, user: null });
+  const [auth, setAuth] = useState(
+    initialAuth || { accessToken: null, user: null }
+  );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const alertShownRef = useRef(false);
 
@@ -63,9 +71,7 @@ const AuthProvider = ({ children, initialAuth = null }) => {
         if (originalRequest._retry) {
           return Promise.reject(error);
         }
-        if (
-          error.response?.status === 401 
-        ) {
+        if (error.response?.status === 401) {
           if (isRefreshing) {
             return Promise.reject(error);
           }

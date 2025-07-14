@@ -2,13 +2,13 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
-
 import DiaryScreen from '../screens/DiaryScreen';
 import SettingScreen from '../screens/SettingScreen';
 import FavouriteScreen from '../screens/FavouriteScreen';
 import PersonalScreen from "../screens/PersonalScreen";
-import WaterReminderSettingScreen from "../screens/WaterReminderSettingScreen";
 import FloatingChatbotButton from "../components/FloatingChatbotButton";
+import SettingNavigator from './SettingNavigator';
+import DiaryNavigator from './DiaryNavigator';
 
 const Tab = createBottomTabNavigator();
 
@@ -37,13 +37,11 @@ export default function MainTabNavigator() {
           headerShown: false,
         })}
       >
-        <Tab.Screen name="Nhật kí" component={DiaryScreen} />
+        <Tab.Screen name="Nhật kí" component={DiaryNavigator} />
         <Tab.Screen name="Yêu thích" component={FavouriteScreen} />
         <Tab.Screen name="Cá nhân" component={PersonalScreen} />
-        <Tab.Screen name="Cài đặt" component={SettingScreen} />
-        <Tab.Screen name="Cài đặt lịch uống nước" component={WaterReminderSettingScreen} />
+        <Tab.Screen name="Cài đặt" component={SettingNavigator} />
       </Tab.Navigator>
-
       <FloatingChatbotButton />
     </View>
   );
