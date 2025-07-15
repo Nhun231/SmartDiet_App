@@ -3,9 +3,10 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
 import { jwtDecode } from "jwt-decode";
-import { PUBLIC_SERVER_ENDPOINT } from '@env';
 
-const BASE_URL = PUBLIC_SERVER_ENDPOINT; // Set your API base URL here
+
+import { PUBLIC_SERVER_ENDPOINT } from '@env';
+const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 const AuthContext = createContext(undefined);
 
@@ -65,7 +66,7 @@ const AuthProvider = ({ children, initialAuth = null }) => {
           return Promise.reject(error);
         }
         if (
-          error.response?.status === 401 
+          error.response?.status === 401
         ) {
           if (isRefreshing) {
             return Promise.reject(error);
@@ -123,8 +124,13 @@ const AuthProvider = ({ children, initialAuth = null }) => {
     };
   }, [isRefreshing]);
 
+  const logout = async () => {
+    setAuth({ accessToken: null, user: null });
+    await AsyncStorage.removeItem("/");
+  };
+
   return (
-    <AuthContext.Provider value={{ ...auth, setAuth }}>
+    <AuthContext.Provider value={{ ...auth, setAuth, logout }}>
       {children}
     </AuthContext.Provider>
   );

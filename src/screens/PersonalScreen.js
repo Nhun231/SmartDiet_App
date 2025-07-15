@@ -7,31 +7,59 @@ import {
     StyleSheet,
     SafeAreaView,
     Dimensions,
+    StatusBar,
+    Modal,
+    Pressable,
+    TextInput,
+    KeyboardAvoidingView,
+    Platform,
+    TouchableWithoutFeedback,
+    Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Path, Circle, Defs, LinearGradient, Stop, Rect, Polyline } from 'react-native-svg';
 import axios from "axios";
-import { LineChart } from 'react-native-chart-kit';
+
+import WeightChart from '../components/WeightChart';
+import { useNavigation } from '@react-navigation/native';
 import { PUBLIC_SERVER_ENDPOINT } from '@env';
-
-const { width } = Dimensions.get('window');
-
 const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
-export default function PersonalScreen() {
-    const [waterIntake, setWaterIntake] = useState(2364);
-    const [currentWeight, setCurrentWeight] = useState(55);
-    const [weightHistory, setWeightHistory] = useState([]);
+function convertTo24Hour(time12h) {
+  // Expects "05:09 PM"
+  const [time, modifier] = time12h.split(' ');
+  let [hours, minutes] = time.split(':');
+  if (hours === '12') hours = '00';
+  if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+  return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+}
 
-    const incrementWater = () => setWaterIntake((prev) => prev + 250);
-    const decrementWater = () => setWaterIntake((prev) => Math.max(0, prev - 250));
+export default function PersonalScreen({ route }) {
+    const { plan } = route.params || {};
+    const [waterIntake, setWaterIntake] = useState(0);
+    const [currentBMI, setCurrentBMI] = useState({});
+    const [weightHistory, setWeightHistory] = useState([]);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [newWeight, setNewWeight] = useState(currentBMI.weight);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigation = useNavigation();
+
+    const [waterData, setWaterData] = useState({ consumed: 0, target: 2000, history: [] });
+    const [isLoadingWater, setIsLoadingWater] = useState(false);
+
+    // const incrementWater = () => setWaterIntake((prev) => prev + 250);
+    // const decrementWater = () => setWaterIntake((prev) => Math.max(0, prev - 250));
 
     useEffect(() => {
         const fetchWeightHistory = async () => {
-            console.log(`${BASE_URL}/customer/calculate/history`);
+            console.log(`${BASE_URL}/customer/calculate/history`)
             try {
                 const res = await axios.get(`${BASE_URL}/customer/calculate/history`);
-                setWeightHistory(res.data.report);
+
+                if (res.data.report && res.data.report.length > 0) {
+                    setWeightHistory(res.data.report);
+                    setCurrentBMI(res.data.report[res.data.report.length - 1]);
+                    setWaterIntake((res.data.report[res.data.report.length - 1].waterIntake)*1000)
+                }
             } catch (error) {
                 console.log('Error fetching weight history:', error);
             }
@@ -39,47 +67,109 @@ export default function PersonalScreen() {
         fetchWeightHistory();
     }, []);
 
-    const chartData = weightHistory.map(item => ({
-        x: new Date(item.createdAt), // or format as needed
-        y: item.weight
-    }));
+    useEffect(() => {
+      const fetchWaterData = async () => {
+        setIsLoadingWater(true);
+        try {
+          const res = await axios.get(`${BASE_URL}/water/water-data`);
+          setWaterData(res.data);
+        } catch (error) {
+          console.log('Error fetching water data:', error);
+        } finally {
+          setIsLoadingWater(false);
+        }
+      };
+      fetchWaterData();
+    }, []);
 
-    // Prepare data for chart-kit
-    const chartKitData = {
-        labels: chartData.map(d => d.x.toLocaleDateString()), // or format as needed
-        datasets: [
-            {
-                data: chartData.map(d => d.y),
-            },
-        ],
+    const modifyWater = async (amount) => {
+      if (amount < 0 && waterData.consumed < Math.abs(amount)) return; // Prevent negative total
+      try {
+        const res = await axios.post(`${BASE_URL}/water/add-water`,
+          { amount: Math.abs(amount) }, // backend expects positive amount
+        );
+        setWaterData(res.data);
+      } catch (error) {
+        console.log('Error updating water intake:', error);
+      }
     };
 
-    const weights = chartData.map(d => d.y);
-    const minWeight = Math.min(...weights);
-    const maxWeight = Math.max(...weights);
-    const avgWeight = weights.reduce((a, b) => a + b, 0) / weights.length || 0;
+    const incrementWater = () => modifyWater(250);
+    // const decrementWater = () => modifyWater(-250);
 
-    // For nice axis marks, round min/max to nearest 0.5 or 1
-    const roundedMin = Math.floor(minWeight);
-    const roundedMax = Math.ceil(maxWeight);
-    const midWeight = ((roundedMax + roundedMin) / 2).toFixed(1);
+    const openWeightModal = () => {
+        setNewWeight(currentBMI.weight);
+        setModalVisible(true);
+    };
+    const closeWeightModal = () => setModalVisible(false);
+
+    const incrementNewWeight = () => setNewWeight(w => parseFloat((w + 0.1).toFixed(1)));
+    const decrementNewWeight = () => setNewWeight(w => Math.max(0, parseFloat((w - 0.1).toFixed(1))));
+
+    const handleUpdateWeight = async () => {
+        setIsSubmitting(true);
+        try {
+            const weightNum = parseFloat(newWeight);
+            if (isNaN(weightNum) || weightNum <= 0) {
+                setIsSubmitting(false);
+                return;
+            }
+            // Fetch newest calculation for required fields
+            const newestRes = await axios.get(`${BASE_URL}/customer/calculate/newest`);
+            const newest = newestRes.data;
+            // Use newest calculation fields, but update weight
+            const payload = {
+                gender: newest.gender,
+                age: newest.age,
+                height: newest.height,
+                weight: weightNum,
+                activity: newest.activity,
+            };
+            await axios.post(`${BASE_URL}/customer/calculate`, payload);
+            setModalVisible(false);
+            // Refresh weight history
+            const res = await axios.get(`${BASE_URL}/customer/calculate/history`);
+            setWeightHistory(res.data.report);
+            //rsetCurrentBMI(weightNum);
+        } catch (error) {
+            console.log('Error updating weight:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#3ECF8C' }}>
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.headerContent}>
                     <View style={styles.profileAvatar}>
                         <Ionicons name="person" size={24} color="#10b981" />
                     </View>
-                    <View style={styles.headerRight}>
-                        <Ionicons name="settings-outline" size={24} color="white" />
-                        <Text style={styles.headerText}>Cài đặt</Text>
-                    </View>
+
                 </View>
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {/* HIỂN KẾ HOẠCH DINH DƯỠNG */}
+                {plan && (
+                    <View style={styles.dietPlanBox}>
+                        <Text style={styles.dietPlanText}>
+                            Kế hoạch dinh dưỡng tương ứng của bạn:
+                        </Text>
+                        <Text style={styles.dietPlanCalories}>
+                            {plan.dailyCalories} calo/ngày
+                        </Text>
+                        <Text style={styles.safeNote}>Để an toàn, mức chênh lệch 500 calo là hợp lý.</Text>
+                        {plan.durationDays && (
+                            <Text style={styles.planInfo}>Thời gian: {plan.durationDays} ngày</Text>
+                        )}
+                        {plan.targetWeightChange && (
+                            <Text style={styles.planInfo}>Số cân nặng cần thay đổi: {plan.targetWeightChange} kg</Text>
+                        )}
+                    </View>
+                )}
+
                 {/* BMI Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
@@ -90,23 +180,29 @@ export default function PersonalScreen() {
                     <View style={styles.card}>
                         <View style={styles.bmiCenter}>
                             <Text style={styles.bmiLabel}>BMI</Text>
-                            <Text style={styles.bmiValue}>21.8</Text>
+                            <Text style={styles.bmiValue}>{currentBMI.bmi ?? '--'}</Text>
                             <View style={styles.timestampRow}>
                                 <Ionicons name="time-outline" size={16} color="#9ca3af" />
-                                <Text style={styles.timestampText}>5 tháng 7 - 21:09</Text>
+                                <Text style={styles.timestampText}>
+                                    {currentBMI.createdAt ? new Date(currentBMI.createdAt).toLocaleString() : '--'}
+                                </Text>
                             </View>
-                            <Text style={styles.updateText}>Cập nhật cần nâng</Text>
+                            <Text style={styles.updateText}>Cập nhật cân nặng</Text>
                         </View>
 
                         <View style={styles.statsRow}>
                             <View style={styles.statItem}>
-                                <Text style={styles.statValue}>159 cm</Text>
+                                <Text style={styles.statValue}>{currentBMI.height ?? '--'} cm</Text>
                                 <Text style={styles.statLabel}>Chiều cao</Text>
                             </View>
                             <View style={styles.statItem}>
-                                <Text style={styles.statValue}>55 kg</Text>
-                                <Text style={styles.statLabel}>Cân nặng tốt</Text>
+                                <Text style={styles.statValue}>{currentBMI.weight ?? '--'} kg</Text>
+                                <Text style={styles.statLabel}>Cân nặng</Text>
                             </View>
+                        </View>
+                        <View style={styles.statItem}>
+                            <Text style={styles.statValue}>{currentBMI.tdee ?? '--'}</Text>
+                            <Text style={styles.statLabel}>TDEE</Text>
                         </View>
                     </View>
                 </View>
@@ -114,26 +210,45 @@ export default function PersonalScreen() {
                 {/* Water Intake Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Bạn nên uống bao nhiều nước</Text>
+                        <Text style={styles.sectionTitle}>Bạn nên uống bao nhiêu nước</Text>
                         <Ionicons name="ellipsis-horizontal" size={20} color="#9ca3af" />
                     </View>
 
                     <View style={styles.card}>
                         <View style={styles.waterCenter}>
                             <View style={styles.waterValueRow}>
-                                <Text style={styles.waterValue}>{waterIntake}</Text>
-                                <Text style={styles.waterUnit}>ml</Text>
+                                <Text style={styles.waterValue}>{waterData.consumed}</Text>
+                                <Text style={styles.waterUnit}>ml / {waterData.target}ml</Text>
                             </View>
-                            <Text style={styles.waterLabel}>Lượng nước bạn cần uống</Text>
-
+                            <Text style={styles.waterLabel}>Lượng nước bạn đã uống hôm nay</Text>
+                            {/* Last water time */}
+                            <Text style={styles.lastWaterTime}>
+                                Lần cuối uống nước: {Array.isArray(waterData.history) && waterData.history.length > 0 && waterData.date
+                                    ? (() => {
+                                        const last = waterData.history[0];
+                                        // Combine date and time, e.g., "2025-07-14 05:09 PM"
+                                        const [year, month, day] = waterData.date.split('-');
+                                        const [time, modifier] = last.time.split(' ');
+                                        let [hours, minutes] = time.split(':');
+                                        if (hours === '12') hours = '00';
+                                        if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+                                        // Create a Date object in UTC
+                                        const utcDate = new Date(Date.UTC(
+                                          Number(year),
+                                          Number(month) - 1,
+                                          Number(day),
+                                          Number(hours),
+                                          Number(minutes)
+                                        ));
+                                        // Add 7 hours for GMT+7
+                                        const gmt7 = new Date(utcDate.getTime());
+                                        // Format as "HH:mm DD/MM/YYYY"
+                                        const pad = n => n.toString().padStart(2, '0');
+                                        return `${pad(gmt7.getHours())}:${pad(gmt7.getMinutes())} ${pad(gmt7.getDate())}/${pad(gmt7.getMonth() + 1)}/${gmt7.getFullYear()}`;
+                                    })()
+                                    : '--'}
+                            </Text>
                             <View style={styles.waterControls}>
-                                <TouchableOpacity
-                                    style={styles.waterButton}
-                                    onPress={decrementWater}
-                                    activeOpacity={0.7}
-                                >
-                                    <Ionicons name="remove" size={20} color="#06b6d4" />
-                                </TouchableOpacity>
                                 <TouchableOpacity
                                     style={styles.waterButton}
                                     onPress={incrementWater}
@@ -143,19 +258,7 @@ export default function PersonalScreen() {
                                 </TouchableOpacity>
                             </View>
                         </View>
-
-                        <View style={styles.waterInfo}>
-                            <View style={styles.infoRow}>
-                                <Ionicons name="time-outline" size={16} color="#9ca3af" />
-                                <Text style={styles.infoText}>Lần cuối cùng</Text>
-                            </View>
-                            <View style={styles.infoRow}>
-                                <Ionicons name="notifications-outline" size={16} color="#f59e0b" />
-                                <Text style={[styles.infoText, { color: '#f59e0b' }]}>
-                                    Bật tính năng thông báo
-                                </Text>
-                            </View>
-                        </View>
+                        {/* Optionally, show history here */}
                     </View>
                 </View>
 
@@ -166,40 +269,21 @@ export default function PersonalScreen() {
                         {/*<Text style={styles.suggestionText}>(gợi ý) 55.62 kg</Text>*/}
                     </View>
 
-                    <View style={styles.card}>
-                        <View style={styles.goalHeader}>
-                            <Text style={styles.goalTitle}>Cân nặng</Text>
-                            <TouchableOpacity style={styles.addButton} activeOpacity={0.7}>
-                                <Ionicons name="add" size={16} color="#374151" />
-                            </TouchableOpacity>
-                        </View>
+                    <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('WeightDetailScreen')}>
+                        <View style={styles.card}>
+                            <View style={styles.goalHeader}>
+                                <Text style={styles.goalTitle}>Cân nặng</Text>
+                                <TouchableOpacity style={styles.addButton} activeOpacity={0.7} onPress={openWeightModal}>
+                                    <Ionicons name="add" size={16} color="#374151" />
+                                </TouchableOpacity>
+                            </View>
 
-                        {/* Weight Chart */}
-                        <View style={styles.chartContainer}>
-                            <LineChart
-                                data={chartKitData}
-                                width={width - 80}
-                                height={120}
-                                chartConfig={{
-                                    backgroundColor: "#a7f3d0",
-                                    backgroundGradientFrom: "#a7f3d0",
-                                    backgroundGradientTo: "#67e8f9",
-                                    decimalPlaces: 1,
-                                    color: (opacity = 1) => `rgba(34, 211, 238, ${opacity})`,
-                                    labelColor: (opacity = 1) => `rgba(31, 41, 55, ${opacity})`,
-                                    style: { borderRadius: 8 },
-                                    propsForDots: { r: "4", strokeWidth: "2", stroke: "#22d3ee" }
-                                }}
-                                bezier
-                                style={{ borderRadius: 8 }}
-                            />
-                            <View style={styles.chartLabels}>
-                                <Text style={[styles.chartLabel, { top: 8 }]}>{roundedMax}</Text>
-                                <Text style={[styles.chartLabel, { top: 32 }]}>{midWeight}</Text>
-                                <Text style={[styles.chartLabel, { bottom: 32 }]}>{roundedMin}</Text>
+                            {/* Weight Chart */}
+                            <View style={styles.chartContainer}>
+                                <WeightChart weightHistory={weightHistory} />
                             </View>
                         </View>
-                    </View>
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
 
@@ -207,6 +291,57 @@ export default function PersonalScreen() {
             <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
                 <Ionicons name="add" size={24} color="white" />
             </TouchableOpacity>
+            {/* Weight Update Modal */}
+            <Modal
+                visible={modalVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={closeWeightModal}
+            >
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={{ flex: 1, justifyContent: 'flex-end' }}
+                >
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+                            <View style={{ backgroundColor: 'white', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 }}>
+                                <Text style={{ fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 16 }}>Cập nhật cân nặng</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                                    <TouchableOpacity onPress={decrementNewWeight} style={{ padding: 16 }}>
+                                        <Ionicons name="remove" size={24} color="#10b981" />
+                                    </TouchableOpacity>
+                                    <TextInput
+                                        style={{ fontSize: 32, fontWeight: 'bold', marginHorizontal: 16, textAlign: 'center', minWidth: 60 }}
+                                        value={String(newWeight)}
+                                        onChangeText={text => {
+                                            const cleaned = text.replace(/[^0-9.]/g, '');
+                                            setNewWeight(cleaned === '' ? 0 : parseFloat(cleaned));
+                                        }}
+                                        keyboardType="numeric"
+                                        maxLength={6}
+                                    />
+                                    <TouchableOpacity onPress={incrementNewWeight} style={{ padding: 16 }}>
+                                        <Ionicons name="add" size={24} color="#10b981" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 16 }}>
+                                    <Text style={{ fontWeight: 'bold', color: '#10b981' }}>kg</Text>
+                                </View>
+                                <TouchableOpacity
+                                    style={{ backgroundColor: '#10b981', borderRadius: 24, paddingVertical: 12, alignItems: 'center', marginBottom: 8 }}
+                                    onPress={handleUpdateWeight}
+                                    disabled={isSubmitting}
+                                >
+                                    <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>{isSubmitting ? 'Đang cập nhật...' : 'Cập nhật'}</Text>
+                                </TouchableOpacity>
+                                <Pressable onPress={closeWeightModal} style={{ alignItems: 'center', marginTop: 8 }}>
+                                    <Text style={{ color: '#6b7280' }}>Hủy</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </TouchableWithoutFeedback>
+                </KeyboardAvoidingView>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -217,9 +352,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9fafb',
     },
     header: {
-        backgroundColor: '#10b981',
+        backgroundColor: '#3ECF8C',
         paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingTop: 0, // flush with top
+        paddingBottom: 12,
     },
     headerContent: {
         flexDirection: 'row',
@@ -247,6 +383,7 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         padding: 16,
+        backgroundColor: '#f9fafb',
     },
     section: {
         marginBottom: 24,
@@ -400,7 +537,7 @@ const styles = StyleSheet.create({
     },
     chartContainer: {
         position: 'relative',
-        height: 120,
+        height: 180,
         borderRadius: 8,
         overflow: 'hidden',
     },
@@ -434,5 +571,46 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 4.65,
         elevation: 8,
+    },
+    dietPlanBox: {
+        backgroundColor: '#fcfcfcff',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 4,
+        alignItems: 'center',
+    },
+    dietPlanText: {
+        fontSize: 16,
+        color: '#000000ff',
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    dietPlanCalories: {
+        fontSize: 24,
+        color: '#059669',
+        fontWeight: 'bold',
+    },
+    safeNote: {
+        fontSize: 14,
+        color: '#ef4444',
+        marginTop: 8,
+        textAlign: 'center',
+    },
+    planInfo: {
+        fontSize: 14,
+        color: '#374151',
+        marginTop: 4,
+        textAlign: 'center',
+    },
+    lastWaterTime: {
+        fontSize: 13,
+        color: '#06b6d4',
+        marginBottom: 8,
+        textAlign: 'center',
     },
 });

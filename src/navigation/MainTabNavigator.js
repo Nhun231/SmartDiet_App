@@ -1,20 +1,22 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-
-import DiaryScreen from '../screens/DiaryScreen';
-import SettingScreen from '../screens/SettingScreen';
+import { View } from 'react-native';
 import FavouriteScreen from '../screens/FavouriteScreen';
 import PersonalScreen from "../screens/PersonalScreen";
+import DiaryScreen from "../screens/DiaryScreen";
+import FloatingChatbotButton from "../components/FloatingChatbotButton";
+import SettingNavigator from './SettingNavigator';
 
 const Tab = createBottomTabNavigator();
 
 export default function MainTabNavigator() {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+      <View style={{ flex: 1 }}>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
 
           if (route.name === 'Nhật kí') {
             iconName = focused ? 'home' : 'home-outline';
@@ -26,32 +28,19 @@ export default function MainTabNavigator() {
             iconName = focused ? 'person' : 'person-outline';
           }
 
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#4CD08D',
-        tabBarInactiveTintColor: 'gray',
-        headerShown: false, // ẩn tiêu đề mặc định
-      })}
-    >
-      <Tab.Screen name="Nhật kí" component={DiaryScreen} />
-      <Tab.Screen
-        name="Yêu thích"
-        component={FavouriteScreen}
-        options={{
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: '#4CD08D',
+          tabBarInactiveTintColor: 'gray',
           headerShown: false,
-        }}
-      />
-        <Tab.Screen name="Cá nhân" component={PersonalScreen}
-                    options={{
-                        headerShown: false,
-                    }}/>
-      <Tab.Screen name="Cài đặt" component={SettingScreen}
-                  options={{
-                      headerShown: false,
-                  }}/>
-
-
-
-    </Tab.Navigator>
+        })}
+      >
+        <Tab.Screen name="Nhật kí" component={DiaryScreen} />
+        <Tab.Screen name="Yêu thích" component={FavouriteScreen} />
+        <Tab.Screen name="Cá nhân" component={PersonalScreen} />
+        <Tab.Screen name="Cài đặt" component={SettingNavigator} />
+      </Tab.Navigator>
+      <FloatingChatbotButton />
+    </View>
   );
 }
