@@ -94,7 +94,7 @@ export default function SmartDietChatbot({ navigation }) {
             <KeyboardAvoidingView
                 style={styles.wrapper}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={25}
+                keyboardVerticalOffset={60}
             >
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()}>

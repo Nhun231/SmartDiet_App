@@ -40,7 +40,7 @@ export default function SettingScreen({ navigation }) {
         <Switch
           value={darkMode}
           onValueChange={toggleDarkMode}
-          trackColor={{ false: '#ccc', true: '#4CAF50' }}
+          trackColor={{ false: '#ccc', true: '#3ECF8C' }}
           thumbColor={darkMode ? '#ffffff' : '#f4f3f4'}
         />
       </View>
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 10,
-    color: '#4CAF50'
+    color: '#3ECF8C'
   },
   menuItem: {
     flexDirection: 'row',

@@ -24,6 +24,15 @@ import { useNavigation } from '@react-navigation/native';
 import { PUBLIC_SERVER_ENDPOINT } from '@env';
 const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
+function convertTo24Hour(time12h) {
+  // Expects "05:09 PM"
+  const [time, modifier] = time12h.split(' ');
+  let [hours, minutes] = time.split(':');
+  if (hours === '12') hours = '00';
+  if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+  return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+}
+
 export default function PersonalScreen({ route }) {
     const { plan } = route.params || {};
     const [waterIntake, setWaterIntake] = useState(0);
@@ -86,7 +95,7 @@ export default function PersonalScreen({ route }) {
     };
 
     const incrementWater = () => modifyWater(250);
-    const decrementWater = () => modifyWater(-250);
+    // const decrementWater = () => modifyWater(-250);
 
     const openWeightModal = () => {
         setNewWeight(currentBMI.weight);
@@ -130,17 +139,14 @@ export default function PersonalScreen({ route }) {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#10b981' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#3ECF8C' }}>
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.headerContent}>
                     <View style={styles.profileAvatar}>
                         <Ionicons name="person" size={24} color="#10b981" />
                     </View>
-                    <View style={styles.headerRight}>
-                        <Ionicons name="settings-outline" size={24} color="white" />
-                        <Text style={styles.headerText}>Cài đặt</Text>
-                    </View>
+
                 </View>
             </View>
 
@@ -154,6 +160,13 @@ export default function PersonalScreen({ route }) {
                         <Text style={styles.dietPlanCalories}>
                             {plan.dailyCalories} calo/ngày
                         </Text>
+                        <Text style={styles.safeNote}>Để an toàn, mức chênh lệch 500 calo là hợp lý.</Text>
+                        {plan.durationDays && (
+                            <Text style={styles.planInfo}>Thời gian: {plan.durationDays} ngày</Text>
+                        )}
+                        {plan.targetWeightChange && (
+                            <Text style={styles.planInfo}>Số cân nặng cần thay đổi: {plan.targetWeightChange} kg</Text>
+                        )}
                     </View>
                 )}
 
@@ -208,15 +221,34 @@ export default function PersonalScreen({ route }) {
                                 <Text style={styles.waterUnit}>ml / {waterData.target}ml</Text>
                             </View>
                             <Text style={styles.waterLabel}>Lượng nước bạn đã uống hôm nay</Text>
+                            {/* Last water time */}
+                            <Text style={styles.lastWaterTime}>
+                                Lần cuối uống nước: {Array.isArray(waterData.history) && waterData.history.length > 0 && waterData.date
+                                    ? (() => {
+                                        const last = waterData.history[0];
+                                        // Combine date and time, e.g., "2025-07-14 05:09 PM"
+                                        const [year, month, day] = waterData.date.split('-');
+                                        const [time, modifier] = last.time.split(' ');
+                                        let [hours, minutes] = time.split(':');
+                                        if (hours === '12') hours = '00';
+                                        if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+                                        // Create a Date object in UTC
+                                        const utcDate = new Date(Date.UTC(
+                                          Number(year),
+                                          Number(month) - 1,
+                                          Number(day),
+                                          Number(hours),
+                                          Number(minutes)
+                                        ));
+                                        // Add 7 hours for GMT+7
+                                        const gmt7 = new Date(utcDate.getTime());
+                                        // Format as "HH:mm DD/MM/YYYY"
+                                        const pad = n => n.toString().padStart(2, '0');
+                                        return `${pad(gmt7.getHours())}:${pad(gmt7.getMinutes())} ${pad(gmt7.getDate())}/${pad(gmt7.getMonth() + 1)}/${gmt7.getFullYear()}`;
+                                    })()
+                                    : '--'}
+                            </Text>
                             <View style={styles.waterControls}>
-                                <TouchableOpacity
-                                    style={styles.waterButton}
-                                    onPress={decrementWater}
-                                    activeOpacity={0.7}
-                                    disabled={waterData.consumed < 250}
-                                >
-                                    <Ionicons name="remove" size={20} color="#06b6d4" />
-                                </TouchableOpacity>
                                 <TouchableOpacity
                                     style={styles.waterButton}
                                     onPress={incrementWater}
@@ -320,7 +352,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#f9fafb',
     },
     header: {
-        backgroundColor: '#10b981',
+        backgroundColor: '#3ECF8C',
         paddingHorizontal: 16,
         paddingTop: 0, // flush with top
         paddingBottom: 12,
@@ -562,5 +594,23 @@ const styles = StyleSheet.create({
         fontSize: 24,
         color: '#059669',
         fontWeight: 'bold',
+    },
+    safeNote: {
+        fontSize: 14,
+        color: '#ef4444',
+        marginTop: 8,
+        textAlign: 'center',
+    },
+    planInfo: {
+        fontSize: 14,
+        color: '#374151',
+        marginTop: 4,
+        textAlign: 'center',
+    },
+    lastWaterTime: {
+        fontSize: 13,
+        color: '#06b6d4',
+        marginBottom: 8,
+        textAlign: 'center',
     },
 });

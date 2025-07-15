@@ -62,7 +62,7 @@ export default function ExerciseLevelScreen({ route, navigation }) {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F0F4F8' },
     header: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#3ECF8C',
         paddingTop: 30,
         paddingBottom: 20,
         paddingHorizontal: 20,
@@ -92,10 +92,10 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     activeItem: {
-        borderColor: '#4CAF50',
+        borderColor: '#3ECF8C',
         transform: [{ scale: 1.02 }],
     },
     label: { fontSize: 18, fontWeight: 'bold', marginBottom: 8, color: '#333', textAlign: 'center' },
-    activeLabel: { color: '#4CAF50' },
+    activeLabel: { color: '#3ECF8C' },
     desc: { fontSize: 16, color: '#666', textAlign: 'center' },
 });

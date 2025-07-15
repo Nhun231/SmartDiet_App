@@ -26,15 +26,13 @@ const targets = [
 export default function TargetScreen({ navigation }) {
     const [selectedTarget, setSelectedTarget] = useState(targets[1]);
     const [modalVisible, setModalVisible] = useState(false);
-    const [targetWeight, setTargetWeight] = useState(50);
-    const [inputText, setInputText] = useState('50');
+    const [targetWeight, setTargetWeight] = useState(1);
+    const [inputText, setInputText] = useState('1');
 
     const adjustWeight = (amount) => {
         const newWeight = targetWeight + amount;
-        if (newWeight >= 20 && newWeight <= 200) {
             setTargetWeight(newWeight);
             setInputText(newWeight.toString());
-        }
     };
 
     const handleSelect = (target) => {
@@ -52,7 +50,7 @@ export default function TargetScreen({ navigation }) {
                 goal: goalValue,
                 targetWeightChange: weightChange,
             });
-            navigation.navigate('PersonalScreen', { plan: res.data });
+            navigation.getParent()?.navigate('Cá nhân', { plan: res.data });
         } catch (error) {
             if (error.response && error.response.status === 404) {
                 try {
@@ -60,7 +58,7 @@ export default function TargetScreen({ navigation }) {
                         goal: goalValue,
                         targetWeightChange: weightChange,
                     });
-                    navigation.navigate('PersonalScreen', { plan: resCreate.data });
+                    navigation.getParent()?.navigate('Cá nhân', { plan: resCreate.data });
                 } catch (errCreate) {
                     Alert.alert('Lỗi', errCreate.response?.data?.message || 'Lỗi khi tạo mới kế hoạch');
                 }
@@ -104,7 +102,7 @@ export default function TargetScreen({ navigation }) {
                     style={modalStyles.modalOverlay}
                 >
                     <View style={modalStyles.modalContainer}>
-                        <Text style={modalStyles.modalTitle}>Nhập cân nặng mục tiêu</Text>
+                        <Text style={modalStyles.modalTitle}>Nhập cân nặng cần điều chỉnh</Text>
                         <View style={modalStyles.weightRow}>
                             <TouchableOpacity onPress={() => adjustWeight(-1)} style={modalStyles.button}>
                                 <Icon name="minus" size={24} color="#333" />
@@ -124,7 +122,7 @@ export default function TargetScreen({ navigation }) {
                             style={modalStyles.saveButton}
                             onPress={() => {
                                 const num = parseInt(inputText);
-                                if (!isNaN(num) && num >= 20 && num <= 200) {
+                                if (!isNaN(num)) {
                                     setTargetWeight(num);
                                     setModalVisible(false);
                                     callApi(selectedTarget.value, num);
@@ -145,7 +143,7 @@ export default function TargetScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F9F9F9' },
     header: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#3ECF8C',
         paddingTop: 30,
         paddingBottom: 20,
         paddingHorizontal: 20,
@@ -159,7 +157,7 @@ const styles = StyleSheet.create({
     headerTitle: { color: '#fff', fontSize: 22, fontWeight: 'bold' },
     question: {
         fontSize: 20,
-        color: '#4CAF50',
+        color: '#3ECF8C',
         textAlign: 'center',
         marginVertical: 30,
         fontWeight: 'bold',
@@ -179,12 +177,12 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     optionSelected: {
-        borderColor: '#4CAF50',
+        borderColor: '#3ECF8C',
         shadowOpacity: 0.2,
         shadowRadius: 5,
     },
     label: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', color: '#333' },
-    labelSelected: { color: '#4CAF50' },
+    labelSelected: { color: '#3ECF8C' },
     desc: { fontSize: 16, color: '#666', textAlign: 'center', marginTop: 8 },
 });
 
@@ -205,7 +203,7 @@ const modalStyles = StyleSheet.create({
         paddingHorizontal: 20,
         alignItems: 'center',
     },
-    modalTitle: { fontSize: 19, fontWeight: 'bold', marginBottom: 20, color: '#4CAF50', textAlign: 'center' },
+    modalTitle: { fontSize: 19, fontWeight: 'bold', marginBottom: 20, color: '#3ECF8C', textAlign: 'center' },
     weightRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -218,7 +216,7 @@ const modalStyles = StyleSheet.create({
         marginHorizontal: 15,
     },
     saveButton: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#3ECF8C',
         paddingVertical: 12,
         paddingHorizontal: 30,
         borderRadius: 25,

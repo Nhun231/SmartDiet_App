@@ -12,6 +12,7 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
+  Image, // Import Image for illustration
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -83,19 +84,19 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
     try {
       const response = await axios.post(`${PUBLIC_SERVER_ENDPOINT}/auth/login`, {
           emailOrName: email,
-          password: password
+        password: password,
+      }, {
+        timeout: 10000, // Added timeout for consistency
       });
 
       const { accessToken } = response.data;
 
       if (accessToken) {
-        // Decode the token to get user info
         const decodedUser = jwtDecode(accessToken);
 
-        // Save token to AsyncStorage
-        await AsyncStorage.setItem("accessToken", accessToken);
-        console.log("accessToken when login success", accessToken);
-        // Call the callback to update parent state
+        await AsyncStorage.setItem('accessToken', accessToken);
+        console.log('accessToken when login success', accessToken);
+
         if (onLoginSuccess) {
           onLoginSuccess(accessToken, decodedUser);
         }
@@ -115,9 +116,10 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
   };
 
   const handleRegister = () => {
-    navigation.navigate('Register');
+    navigation.navigate('RegisterScreen');
   };
 
+  // handleGoBack đã được thêm lại
   const handleGoBack = () => {
     if (navigation) {
       navigation.goBack();
@@ -128,6 +130,7 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#00D4AA" />
       <View style={styles.header}>
+        {/* Nút quay lại đã được thêm lại */}
         <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
           <Ionicons name="chevron-back" size={28} color="#000" />
         </TouchableOpacity>
@@ -146,6 +149,17 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Illustration Container - Added for consistency */}
+          <View style={styles.illustrationContainer}>
+            <Image
+              source={{
+                uri: 'https://placehold.co/120120/E0F7FA/00796B?text=Login'
+              }}
+              style={styles.illustrationImage}
+              resizeMode="contain"
+            />
+          </View>
+
           <View style={styles.inputContainer}>
             <View style={styles.inputWrapper}>
               <Ionicons name="mail-outline" size={20} color="#999" style={styles.inputIcon} />
@@ -231,14 +245,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16, // Adjusted for consistency
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  backButton: {
+  backButton: { // Giữ lại style này phòng trường hợp cần dùng lại
     padding: 4,
   },
   headerTitle: {
@@ -264,8 +278,16 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingBottom: 30,
   },
-  inputContainer: {
+  illustrationContainer: { // Added for consistency
+    alignItems: 'center',
     marginBottom: 40,
+  },
+  illustrationImage: { // Added for consistency
+    width: 120,
+    height: 120,
+  },
+  inputContainer: {
+    marginBottom: 30, // Adjusted for consistency
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -298,6 +320,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 15,
     marginLeft: 35,
+    lineHeight: 20, // Adjusted for consistency
   },
   loginButton: {
     backgroundColor: '#00D4AA',

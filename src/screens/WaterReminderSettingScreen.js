@@ -179,7 +179,7 @@ const WaterScheduleScreen = ({ navigation }) => {
                             style={{
                                 paddingHorizontal: 10,
                                 paddingVertical: 5,
-                                backgroundColor: reminderGap === gap ? '#4CAF50' : '#ccc',
+                                backgroundColor: reminderGap === gap ? '#3ECF8C' : '#ccc',
                                 borderRadius: 10,
                                 marginLeft: 10,
                             }}>
@@ -224,7 +224,7 @@ const WaterScheduleScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f5f5f5' },
     header: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#3ECF8C',
         paddingTop: 50,
         paddingBottom: 20,
         paddingHorizontal: 20,
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     },
     sleepLabel: { fontSize: 16, fontWeight: 'bold', color: '#333' },
     sleepTimes: { flexDirection: 'row', alignItems: 'center' },
-    timeEditable: { fontSize: 16, fontWeight: 'bold', color: '#4CAF50', textDecorationLine: 'underline' },
+    timeEditable: { fontSize: 16, fontWeight: 'bold', color: '#3ECF8C', textDecorationLine: 'underline' },
     hyphen: { fontSize: 16, marginHorizontal: 5, color: '#333' },
     reminderSection: {
         paddingHorizontal: 20, paddingVertical: 15, backgroundColor: '#fff',
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     amount: { fontSize: 14, color: '#333', marginBottom: 4 },
     time: { fontSize: 14, color: '#666', textDecorationLine: 'underline' },
     saveButton: {
-        backgroundColor: '#4CAF50', marginHorizontal: 20, marginVertical: 20,
+        backgroundColor: '#3ECF8C', marginHorizontal: 20, marginVertical: 20,
         paddingVertical: 15, borderRadius: 25, alignItems: 'center',
     },
     saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },

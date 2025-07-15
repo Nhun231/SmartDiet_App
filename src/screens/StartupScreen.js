@@ -34,7 +34,7 @@ export default function StartupScreen({ navigation }) {
 
   return (
     <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="#4CAF50" />
+      <ActivityIndicator size="large" color="#3ECF8C" />
       <Text style={styles.loadingText}>Đang kiểm tra dữ liệu cá nhân...</Text>
     </View>
   );

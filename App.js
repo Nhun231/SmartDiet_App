@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import LoginScreen from './src/screens/LoginScreen';
-import SignupScreen from './src/screens/SignupScreen';
+import RegisterScreen from './src/screens/RegisterScreen.js';
 import CreateIngredientScreen from './src/screens/CreateIngredientScreen.js';
 import MainTabNavigator from './src/navigation/MainTabNavigator.js';
 import AuthProvider from './src/context/AuthProvider';
@@ -15,7 +15,7 @@ import CreateDishScreen from './src/screens/CreateDishScreen.js';
 import IngreDetailScreen from './src/screens/IngreDetailScreen.js';
 import DishDetailScreen from './src/screens/DishDetailScreen.js';
 import PickIngredientScreen from './src/screens/PickIngredientScreen.js'
-import MealEntryScreen from './src/screens/MealEntryScreen'; // import mới
+import MealEntryScreen from './src/screens/MealEntryScreen.js'; // import mới
 import InitialCalculateScreen from './src/screens/InitialCalculateScreen';
 import StartupScreen from './src/screens/StartupScreen';
 
@@ -87,7 +87,7 @@ export default function App() {
                       <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} />
                     )} 
                   />
-                  <Stack.Screen name="Signup" component={SignupScreen} />
+            <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
                 </>
               )}
           </Stack.Navigator>

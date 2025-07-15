@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, StatusBar, ScrollView, TouchableOpacity, Modal, Dimensions, TextInput, Alert, SafeAreaView } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, StatusBar, ScrollView, TouchableOpacity, Modal, Dimensions, TextInput, Alert, SafeAreaView, TouchableWithoutFeedback } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'react-native-calendars';
 import CircularTracker from '../components/CircularTracker';
@@ -94,6 +94,8 @@ export default function HealthTrackingScreen() {
   const WATER_GLASS_VOLUME = 250;
 
   const [apiUserId, setApiUserId] = useState(null);
+  const [waterData, setWaterData] = useState({ consumed: 0, target: 2000, history: [] });
+  const [isLoadingWater, setIsLoadingWater] = useState(false);
 
   const saveWaterTimeoutRef = useRef(null);
 
@@ -181,10 +183,6 @@ export default function HealthTrackingScreen() {
         }
 
         const response = await axios.get(`${BASE_URL}/customer/dietplan/get-current`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
           timeout: 10000,
         });
 
@@ -221,7 +219,6 @@ export default function HealthTrackingScreen() {
         for (const mealType of mealTypes) {
           try {
             const mealResponse = await axios.get(`${BASE_URL}/meals/by-date`, {
-              headers: { 'Authorization': `Bearer ${token}` },
               params: { userId: apiUserId, date: selectedDate, mealType },
               timeout: 10000,
             });
@@ -252,10 +249,7 @@ export default function HealthTrackingScreen() {
         });
 
         try {
-          const targetMacrosResponse = await axios.get(`${BASE_URL}/customer/calculate/newest`, {
-            headers: { 'Authorization': `Bearer ${token}` },
-            timeout: 10000,
-          });
+          const targetMacrosResponse = await axios.get(`${BASE_URL}/customer/calculate/newest`);
           if (targetMacrosResponse.status === 200 && targetMacrosResponse.data) {
             const data = targetMacrosResponse.data;
             setTargetMacros({
@@ -288,19 +282,37 @@ export default function HealthTrackingScreen() {
     }
   }, [selectedDate, dailyCaloriesTarget, apiUserId]); 
 
-  const handleGlassClick = (index) => {
-    const maxGlasses = Math.ceil(waterGoal / WATER_GLASS_VOLUME);
-    let newCurrentGlass;
+  useEffect(() => {
+    const fetchWaterData = async () => {
+      setIsLoadingWater(true);
+      try {
+        const res = await axios.get(`${BASE_URL}/water/water-data`, {
+          params: { date: selectedDate }
+        });
+        setWaterData(res.data);
+      } catch (error) {
+        console.log('Error fetching water data:', error);
+      } finally {
+        setIsLoadingWater(false);
+      }
+    };
+    if (apiUserId && selectedDate) fetchWaterData();
+  }, [apiUserId, selectedDate]);
 
-    if (index + 1 > currentGlass) {
-      newCurrentGlass = index + 1;
-    } else if (index + 1 === currentGlass) {
-      newCurrentGlass = index;
-    } else {
-      newCurrentGlass = index + 1;
+  const handleGlassClick = async (index) => {
+    if (selectedDate !== new Date().toISOString().split('T')[0]) return;
+    const WATER_GLASS_VOLUME = 250;
+    const desiredConsumed = (index + 1) * WATER_GLASS_VOLUME;
+    if (desiredConsumed > waterData.consumed) {
+      const amountToAdd = desiredConsumed - waterData.consumed;
+      try {
+        const res = await axios.post(`${BASE_URL}/water/add-water`, { amount: amountToAdd });
+        setWaterData(res.data);
+      } catch (error) {
+        console.log('Error updating water intake:', error);
+      }
     }
-
-    setCurrentGlass(Math.min(newCurrentGlass, maxGlasses));
+    // Do nothing if clicking on a filled or previous glass (no removal)
   };
 
   const getDateLabel = () => {
@@ -355,6 +367,15 @@ export default function HealthTrackingScreen() {
     saveWaterData(apiUserId, selectedDate, currentGlass, newGoal);
   };
 
+  const modifyWater = async (amount) => {
+    try {
+      const res = await axios.post(`${BASE_URL}/water/add-water`, { amount });
+      setWaterData(res.data);
+    } catch (error) {
+      console.log('Error updating water intake:', error);
+    }
+  };
+
   if (loading || !apiUserId) {
     return (
       <View style={styles.loadingContainer}>
@@ -366,10 +387,10 @@ export default function HealthTrackingScreen() {
   const caloriesRemaining = Math.max(0, dailyCaloriesTarget - caloriesConsumed);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#10b981' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#3ECF8C' }}>
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#3ECF8C" />
-      <ScrollView style={styles.scrollViewContent}>
+
         <LinearGradient colors={['#3ECF8C', '#3ECF8C']} style={styles.header}>
           <View style={styles.titleSection}>
             <View style={styles.titleRow}>
@@ -438,42 +459,48 @@ export default function HealthTrackingScreen() {
           <View style={styles.nutritionStats}>
             <View style={styles.nutritionItem}>
               <Text style={styles.nutritionLabel}>Tinh bột</Text>
-              <Text style={styles.nutritionValue}>{macrosConsumed.carbs.toFixed(0)}</Text>
+              <Text style={styles.nutritionValue}>{macrosConsumed.carbs.toFixed(0)}/{targetMacros.carbs.toFixed(0)}</Text>
             </View>
             <View style={styles.nutritionItem}>
               <Text style={styles.nutritionLabel}>Chất đạm</Text>
-              <Text style={styles.nutritionValue}>{macrosConsumed.protein.toFixed(0)}</Text>
+              <Text style={styles.nutritionValue}>{macrosConsumed.protein.toFixed(0)}/{targetMacros.protein.toFixed(0)}</Text>
             </View>
             <View style={styles.nutritionItem}>
               <Text style={styles.nutritionLabel}>Chất béo</Text>
-              <Text style={styles.nutritionValue}>{macrosConsumed.fat.toFixed(0)}</Text>
+              <Text style={styles.nutritionValue}>{macrosConsumed.fat.toFixed(0)}/{targetMacros.fat.toFixed(0)}</Text>
             </View>
             <View style={styles.nutritionItem}>
               <Text style={styles.nutritionLabel}>Chất xơ</Text>
-              <Text style={styles.nutritionValue}>{macrosConsumed.fiber.toFixed(0)}</Text>
+              <Text style={styles.nutritionValue}>{macrosConsumed.fiber.toFixed(0)}/{targetMacros.fiber.toFixed(0)}</Text>
             </View>
           </View>
         </LinearGradient>
-
+      <ScrollView style={styles.scrollViewContent}>
         <View style={styles.waterSection}>
           <View style={styles.waterHeader}>
             <Text style={styles.waterTitle}>Bạn đã uống bao nhiêu nước</Text>
             <TouchableOpacity onPress={() => setIsWaterGoalModalVisible(true)}>
-              <Text style={styles.waterAmount}>{totalWaterConsumed}/{waterGoal} ml</Text>
+              <Text style={styles.waterAmount}>{waterData.consumed}/{waterData.target} ml</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.waterGlasses}>
-            {waterGlasses.map((isFilled, index) => (
-              <View key={index} style={styles.glassContainer}>
-                <TouchableOpacity
-                  style={styles.waterGlass}
-                  onPress={() => handleGlassClick(index)}
-                >
-                  <WaterGlassIcon filled={index < currentGlass} />
-                </TouchableOpacity>
-              </View>
-            ))}
+            {(() => {
+              const WATER_GLASS_VOLUME = 250;
+              const maxGlasses = Math.ceil(waterData.target / WATER_GLASS_VOLUME);
+              const filledGlasses = Math.floor(waterData.consumed / WATER_GLASS_VOLUME);
+              return Array.from({ length: maxGlasses }).map((_, index) => (
+                <View key={index} style={styles.glassContainer}>
+                  <TouchableOpacity
+                    style={styles.waterGlass}
+                    onPress={() => handleGlassClick(index)}
+                    disabled={selectedDate !== new Date().toISOString().split('T')[0]}
+                  >
+                    <WaterGlassIcon filled={index < filledGlasses} />
+                  </TouchableOpacity>
+                </View>
+              ));
+            })()}
           </View>
         </View>
 
@@ -555,7 +582,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5', 
   },
   header: { 
-
+    paddingTop: 15,
     paddingBottom: 40,
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,

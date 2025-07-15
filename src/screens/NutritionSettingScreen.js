@@ -148,7 +148,7 @@ function MacroSlider({ name, value, onValueChange, color, totalCalories }) {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F9F9F9' },
     header: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#3ECF8C',
         paddingTop: 50,
         paddingBottom: 20,
         paddingHorizontal: 20,
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#4CAF50',
+        color: '#3ECF8C',
         textAlign: 'center',
         marginTop: 20,
     },

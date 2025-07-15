@@ -12,10 +12,6 @@ export default function CircularTracker({ currentValue = 0, targetValue = 0, siz
   const percentage = targetValue > 0 ? (currentValue / targetValue) * 100 : 0;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-  // Debugging logs
-  console.log('[CircularTracker] Received currentValue:', currentValue);
-  console.log('[CircularTracker] Received targetValue:', targetValue);
-  console.log('[CircularTracker] Calculated percentage:', percentage.toFixed(2) + '%');
 
 
   return (

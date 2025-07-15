@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, TextInput, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -167,7 +167,7 @@ export default function BMREditScreen({ navigation }) {
             </View>
 
             {/* Save Button at Bottom */}
-            <TouchableOpacity style={[styles.targetButton, { backgroundColor: '#4CAF50' }]} onPress={handleSave}>
+            <TouchableOpacity style={[styles.targetButton, { backgroundColor: '#3ECF8C' }]} onPress={handleSave}>
                 <Text style={[styles.targetButtonText, { color: '#fff' }]}>Lưu</Text>
             </TouchableOpacity>
 
@@ -177,63 +177,65 @@ export default function BMREditScreen({ navigation }) {
                 animationType="slide"
                 onRequestClose={() => setModalVisible(false)}
             >
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+                <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
                     <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Cập nhật {modalField}</Text>
+                        <TouchableWithoutFeedback onPress={() => {}}>
+                            <View style={styles.modalContent}>
+                                <Text style={styles.modalTitle}>Cập nhật {modalField}</Text>
 
-                            {modalField === 'Giới tính' ? (
-                                <>
-                                    <TouchableOpacity
-                                        style={styles.genderOption}
-                                        onPress={() => {
-                                            setGender('Nam');
-                                            setModalVisible(false);
-                                        }}
-                                    >
-                                        <Text style={styles.genderText}>Nam</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={styles.genderOption}
-                                        onPress={() => {
-                                            setGender('Nữ');
-                                            setModalVisible(false);
-                                        }}
-                                    >
-                                        <Text style={styles.genderText}>Nữ</Text>
-                                    </TouchableOpacity>
-                                </>
-                            ) : (
-                                <>
-                                    <View style={styles.inputRowModal}>
+                                {modalField === 'Giới tính' ? (
+                                    <>
                                         <TouchableOpacity
-                                            onPress={() => setModalValue((+modalValue - 1).toString())}
-                                            style={styles.adjustButton}
+                                            style={styles.genderOption}
+                                            onPress={() => {
+                                                setGender('Nam');
+                                                setModalVisible(false);
+                                            }}
                                         >
-                                            <Icon name="minus" size={22} color="#4CAF50" />
+                                            <Text style={styles.genderText}>Nam</Text>
                                         </TouchableOpacity>
-                                        <TextInput
-                                            style={styles.modalInput}
-                                            value={modalValue}
-                                            onChangeText={setModalValue}
-                                            keyboardType="numeric"
-                                        />
                                         <TouchableOpacity
-                                            onPress={() => setModalValue((+modalValue + 1).toString())}
-                                            style={styles.adjustButton}
+                                            style={styles.genderOption}
+                                            onPress={() => {
+                                                setGender('Nữ');
+                                                setModalVisible(false);
+                                            }}
                                         >
-                                            <Icon name="plus" size={22} color="#4CAF50" />
+                                            <Text style={styles.genderText}>Nữ</Text>
                                         </TouchableOpacity>
-                                    </View>
-                                    {modalUnit ? <Text style={styles.unitText}>{modalUnit}</Text> : null}
-                                    <TouchableOpacity style={styles.saveButton} onPress={handleSaveModal}>
-                                        <Text style={styles.saveButtonText}>Cập nhật</Text>
-                                    </TouchableOpacity>
-                                </>
-                            )}
-                        </View>
+                                    </>
+                                ) : (
+                                    <>
+                                        <View style={styles.inputRowModal}>
+                                            <TouchableOpacity
+                                                onPress={() => setModalValue((+modalValue - 1).toString())}
+                                                style={styles.adjustButton}
+                                            >
+                                                <Icon name="minus" size={22} color="#4CAF50" />
+                                            </TouchableOpacity>
+                                            <TextInput
+                                                style={styles.modalInput}
+                                                value={modalValue}
+                                                onChangeText={setModalValue}
+                                                keyboardType="numeric"
+                                            />
+                                            <TouchableOpacity
+                                                onPress={() => setModalValue((+modalValue + 1).toString())}
+                                                style={styles.adjustButton}
+                                            >
+                                                <Icon name="plus" size={22} color="#4CAF50" />
+                                            </TouchableOpacity>
+                                        </View>
+                                        {modalUnit ? <Text style={styles.unitText}>{modalUnit}</Text> : null}
+                                        <TouchableOpacity style={styles.saveButton} onPress={handleSaveModal}>
+                                            <Text style={styles.saveButtonText}>Cập nhật</Text>
+                                        </TouchableOpacity>
+                                    </>
+                                )}
+                            </View>
+                        </TouchableWithoutFeedback>
                     </View>
-                </KeyboardAvoidingView>
+                </TouchableWithoutFeedback>
             </Modal>
         </ScrollView>
     );
@@ -242,7 +244,7 @@ export default function BMREditScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F9F9F9' },
     header: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#3ECF8C',
         paddingTop: 50,
         paddingBottom: 15,
         paddingHorizontal: 20,
@@ -260,7 +262,7 @@ const styles = StyleSheet.create({
     content: { padding: 20 },
     targetButton: {
         backgroundColor: '#fff',
-        borderColor: '#4CAF50',
+        borderColor: '#3ECF8C',
         borderWidth: 1,
         paddingVertical: 10,
         paddingHorizontal: 15,
@@ -269,7 +271,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         marginTop: 20,
     },
-    targetButtonText: { color: '#4CAF50', fontWeight: 'bold', fontSize: 16 },
+    targetButtonText: { color: '#3ECF8C', fontWeight: 'bold', fontSize: 16 },
     inputRow: {
         backgroundColor: '#fff',
         padding: 15,
@@ -303,7 +305,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 25,
-        color: '#4CAF50',
+        color: '#3ECF8C',
     },
     inputRowModal: {
         flexDirection: 'row',
@@ -338,7 +340,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     saveButton: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#3ECF8C',
         paddingVertical: 15,
         borderRadius: 12,
         alignItems: 'center',
@@ -364,7 +366,7 @@ const styles = StyleSheet.create({
     },
     genderText: {
         fontSize: 18,
-        color: '#4CAF50',
+        color: '#3ECF8C',
         fontWeight: '600',
     },
 });

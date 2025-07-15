@@ -54,10 +54,7 @@ const MealHistory = ({ selectedDate }) => {
       for (const mealType of mealTypes) {
         try {
           const response = await axios.get(`${BASE_URL}/meals/by-date`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
+
             params: {
               date: selectedDate,
               userId: userId,
@@ -78,7 +75,6 @@ const MealHistory = ({ selectedDate }) => {
           }
         } catch (apiError) {
           if (apiError.response && apiError.response.status === 404) {
-            console.log(`[INFO] Không tìm thấy bữa ăn cho loại ${mealType}, tiếp tục...`);
           } else {
             setError(`Lỗi từ máy chủ khi lấy bữa ăn loại ${mealType}: ${apiError.message}`);
             hasSeriousError = true;

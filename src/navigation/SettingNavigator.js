@@ -19,7 +19,6 @@ export default function SettingStackNavigator() {
             <Stack.Screen name="ExerciseLevelScreen" component={ExerciseLevelScreen} />
             <Stack.Screen name="TargetScreen" component={TargetScreen} />
             <Stack.Screen name="NutritionSetting" component={NutritionSettingScreen} />
-            <Stack.Screen name="PersonalScreen" component={PersonalScreen} />
             <Stack.Screen name="InitialCalculateScreen" component={InitialCalculateScreen} />
             <Stack.Screen name="WaterScheduleScreen" component={WaterScheduleScreen} />
         </Stack.Navigator>
