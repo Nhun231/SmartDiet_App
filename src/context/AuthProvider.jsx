@@ -20,6 +20,7 @@ export const useAuth = () => {
 
 const AuthProvider = ({ children, initialAuth = null }) => {
   const [auth, setAuth] = useState(initialAuth || { accessToken: null, user: null });
+  const [isLoggedIn, setIsLoggedIn] = useState(!!(initialAuth && initialAuth.accessToken));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const alertShownRef = useRef(false);
 
@@ -32,10 +33,14 @@ const AuthProvider = ({ children, initialAuth = null }) => {
           try {
             const decodedUser = jwtDecode(storedToken);
             setAuth({ accessToken: storedToken, user: decodedUser });
+            setIsLoggedIn(true);
           } catch (e) {
             console.error("Invalid stored token", e);
             await AsyncStorage.removeItem("accessToken");
+            setIsLoggedIn(false);
           }
+        } else {
+          setIsLoggedIn(false);
         }
       };
       loadToken();
@@ -126,11 +131,12 @@ const AuthProvider = ({ children, initialAuth = null }) => {
 
   const logout = async () => {
     setAuth({ accessToken: null, user: null });
-    await AsyncStorage.removeItem("/");
+    setIsLoggedIn(false);
+    await AsyncStorage.removeItem("accessToken");
   };
 
   return (
-    <AuthContext.Provider value={{ ...auth, setAuth, logout }}>
+    <AuthContext.Provider value={{ ...auth, setAuth, logout, isLoggedIn, setIsLoggedIn }}>
       {children}
     </AuthContext.Provider>
   );

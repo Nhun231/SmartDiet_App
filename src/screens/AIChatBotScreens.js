@@ -53,7 +53,7 @@ export default function SmartDietChatbot({ navigation }) {
         setIsLoading(true);
 
         try {
-            const res = await axios.post(PUBLIC_SERVER_ENDPOINT, { prompt: input });
+            const res = await axios.post(`${PUBLIC_SERVER_ENDPOINT}/ai/chats`, { prompt: input });
             const replyText = res.data || "I didn't understand that, please try again.";
             const reply = {
                 id: Date.now().toString() + "-bot",

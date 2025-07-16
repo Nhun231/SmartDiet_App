@@ -3,13 +3,19 @@
     "version": ">= 16.14.1",
     "appVersionSource": "remote"
   },
+  "owner": "na2",
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal"
     },
+
     "preview": {
-      "distribution": "internal"
+
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "autoIncrement": true

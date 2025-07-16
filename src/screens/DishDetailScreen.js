@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import NutritionChart from '../components/DoughnutChart';
 import FavouriteIngredientCard from '../components/FavouriteIngredientCard';
@@ -26,7 +26,11 @@ export default function DishDetailScreen({ route, navigation }) {
 
     const addDishToDiary = async () => {
         const mealType = mealTypeToUse;
-        if (!mealType || !dishData) return;
+        console.log("addDishToDiary called", { mealType, dishData });
+        if (!mealType || !dishData) {
+            console.log("Missing mealType or dishData");
+            return;
+        }
 
         try {
             const token = await AsyncStorage.getItem("accessToken");
@@ -80,7 +84,9 @@ export default function DishDetailScreen({ route, navigation }) {
 
                 console.log("Đã cập nhật món ăn vào nhật ký!");
             } catch (err) {
+                
                 if (err.response?.status === 404) {
+                    console.log("Chưa có meal :", err);
                     // Tạo meal mới nếu chưa có
                     await axios.post(`${PUBLIC_SERVER_ENDPOINT}/meals`, {
                         mealType,
@@ -91,7 +97,7 @@ export default function DishDetailScreen({ route, navigation }) {
                     });
                     console.log("Đã tạo nhật ký mới với món ăn!");
                 } else {
-                    console.error("Lỗi khi thêm dish:", err.message);
+                    console.log("Lỗi khi thêm dish:", err.message);
                 }
             }
 
@@ -202,72 +208,78 @@ export default function DishDetailScreen({ route, navigation }) {
 
 
             <Modal visible={modalVisible} transparent animationType="slide">
-                <View style={styles.modalOverlay}>
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === "ios" ? "padding" : "height"}
-                        style={{ width: "100%" }}
-                    >
-                        <View style={styles.bottomSheet}>
-                            <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>Chọn bữa</Text>
-                                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                    <Ionicons name="close" size={24} color="#333" />
-                                </TouchableOpacity>
-                            </View>
+                <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+                    <View style={styles.modalOverlay}>
+                        <KeyboardAvoidingView
+                            behavior={Platform.OS === "ios" ? "padding" : "height"}
+                            style={{ width: "100%" }}
+                        >
+                            <TouchableWithoutFeedback onPress={() => {}}>
+                                <View style={styles.bottomSheet}>
+                                    <View style={styles.modalHeader}>
+                                        <Text style={styles.modalTitle}>Chọn bữa</Text>
+                                        <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                            <Ionicons name="close" size={24} color="#333" />
+                                        </TouchableOpacity>
+                                    </View>
 
-                            <View style={styles.categoryContainer}>
-                                {["breakfast", "lunch", "dinner", "snack"].map(meal => (
+                                    <View style={styles.categoryContainer}>
+                                        {["breakfast", "lunch", "dinner", "snack"].map(meal => (
+                                            <TouchableOpacity
+                                                key={meal}
+                                                onPress={() => setSelectedMeal(meal)}
+                                                style={[
+                                                    styles.categoryOption,
+                                                    selectedMeal === meal && styles.categorySelected,
+                                                ]}
+                                            >
+                                                <Text style={[
+                                                    styles.categoryText,
+                                                    selectedMeal === meal && styles.categoryTextSelected,
+                                                ]}>
+                                                    {meal === 'breakfast' ? 'Bữa sáng' :
+                                                        meal === 'lunch' ? 'Bữa trưa' :
+                                                            meal === 'dinner' ? 'Bữa tối' : 'Bữa phụ'}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+
+                                    <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 10 }}>
+                                        Số khẩu phần
+                                    </Text>
+                                    <View style={styles.quantityContainer}>
+                                        <TouchableOpacity
+                                            onPress={() => setQuantity(prev => Math.max(1, prev - 1))}
+                                            style={styles.quantityButton}
+                                        >
+                                            <Ionicons name="remove" size={20} color="#333" />
+                                        </TouchableOpacity>
+                                        <Text style={styles.quantityText}>{quantity}</Text>
+                                        <TouchableOpacity
+                                            onPress={() => setQuantity(prev => prev + 1)}
+                                            style={styles.quantityButton}
+                                        >
+                                            <Ionicons name="add" size={20} color="#333" />
+                                        </TouchableOpacity>
+                                    </View>
+
                                     <TouchableOpacity
-                                        key={meal}
-                                        onPress={() => setSelectedMeal(meal)}
-                                        style={[
-                                            styles.categoryOption,
-                                            selectedMeal === meal && styles.categorySelected,
-                                        ]}
+                                        style={styles.confirmButton}
+                                        onPress={() => {
+                                            console.log("Xác nhận button pressed - direct call");
+                                            addDishToDiary();
+                                            setModalVisible(false);
+                                            
+                                        }}
                                     >
-                                        <Text style={[
-                                            styles.categoryText,
-                                            selectedMeal === meal && styles.categoryTextSelected,
-                                        ]}>
-                                            {meal === 'breakfast' ? 'Bữa sáng' :
-                                                meal === 'lunch' ? 'Bữa trưa' :
-                                                    meal === 'dinner' ? 'Bữa tối' : 'Bữa phụ'}
-                                        </Text>
+                                        <Text style={styles.confirmButtonText}>Xác nhận</Text>
                                     </TouchableOpacity>
-                                ))}
-                            </View>
-
-                            <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 10 }}>
-                                Số khẩu phần
-                            </Text>
-                            <View style={styles.quantityContainer}>
-                                <TouchableOpacity
-                                    onPress={() => setQuantity(prev => Math.max(1, prev - 1))}
-                                    style={styles.quantityButton}
-                                >
-                                    <Ionicons name="remove" size={20} color="#333" />
-                                </TouchableOpacity>
-                                <Text style={styles.quantityText}>{quantity}</Text>
-                                <TouchableOpacity
-                                    onPress={() => setQuantity(prev => prev + 1)}
-                                    style={styles.quantityButton}
-                                >
-                                    <Ionicons name="add" size={20} color="#333" />
-                                </TouchableOpacity>
-                            </View>
-
-                            <TouchableOpacity
-                                style={styles.confirmButton}
-                                onPress={() => {
-                                    setModalVisible(false);
-                                    setTimeout(() => addDishToDiary(), 200);
-                                }}
-                            >
-                                <Text style={styles.confirmButtonText}>Xác nhận</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </KeyboardAvoidingView>
-                </View>
+                                </View>
+                            </TouchableWithoutFeedback>
+                        </KeyboardAvoidingView>
+                    </View>
+                </TouchableWithoutFeedback>
             </Modal>
 
         </View>

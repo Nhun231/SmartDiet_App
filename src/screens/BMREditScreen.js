@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 import { PUBLIC_SERVER_ENDPOINT } from '@env';
+import { useFocusEffect } from '@react-navigation/native';
 const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 export default function BMREditScreen({ navigation }) {
@@ -21,26 +22,27 @@ export default function BMREditScreen({ navigation }) {
     const [modalUnit, setModalUnit] = useState('');
 
     // Auto fetch data khi mở màn
-    useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                const token = await AsyncStorage.getItem('accessToken');
-                const res = await axios.get(`${BASE_URL}/customer/calculate/newest`);
-                const data = res.data;
-                setGender(data.gender || 'Nữ');
-                setAge(String(data.age || ''));
-                setHeight(String(data.height || ''));
-                setWeight(String(data.weight || ''));
-                setActivity(data.activity || 'Vừa');
-                setTdee(data.tdee || '');
-            } catch (error) {
-                console.error('Error fetching user data:', error);
-                Alert.alert('Lỗi', 'Không thể lấy dữ liệu hồ sơ.');
-            }
-        };
-
-        fetchUserData();
-    }, []);
+    const fetchUserData = async () => {
+        try {
+            const token = await AsyncStorage.getItem('accessToken');
+            const res = await axios.get(`${BASE_URL}/customer/calculate/newest`);
+            const data = res.data;
+            setGender(data.gender || 'Nữ');
+            setAge(String(data.age || ''));
+            setHeight(String(data.height || ''));
+            setWeight(String(data.weight || ''));
+            setActivity(data.activity || 'Vừa');
+            setTdee(data.tdee || '');
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            Alert.alert('Lỗi', 'Không thể lấy dữ liệu hồ sơ.');
+        }
+    };
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchUserData();
+        }, [])
+    );
 
     const handleSave = async () => {
         try {

@@ -9,6 +9,7 @@ import FloatingActionMenu from '../components/FloatingActionMenu';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import MealHistory from '../components/MealHistory';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -199,104 +200,111 @@ export default function HealthTrackingScreen() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const fetchMealsAndCalculateTotals = async () => {
-      setLoading(true);
-      try {
-        const token = await AsyncStorage.getItem('accessToken');
-        if (!token || !apiUserId || !selectedDate) {
-          setLoading(false);
-          return;
-        }
+  const fetchMealsAndCalculateTotals = async () => {
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem('accessToken');
+      if (!token || !apiUserId || !selectedDate) {
+        setLoading(false);
+        return;
+      }
 
-        let totalCaloriesForDay = 0;
-        let totalProteinForDay = 0;
-        let totalFatForDay = 0;
-        let totalCarbsForDay = 0;
-        let totalFiberForDay = 0;
+      let totalCaloriesForDay = 0;
+      let totalProteinForDay = 0;
+      let totalFatForDay = 0;
+      let totalCarbsForDay = 0;
+      let totalFiberForDay = 0;
 
-        const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
-        for (const mealType of mealTypes) {
-          try {
-            const mealResponse = await axios.get(`${BASE_URL}/meals/by-date`, {
-              params: { userId: apiUserId, date: selectedDate, mealType },
-              timeout: 10000,
-            });
-
-            if (mealResponse.status === 200 && mealResponse.data) {
-              const meal = mealResponse.data;
-              const { calories, protein, fat, carbs, fiber } = calculateMealNutrition(meal);
-              totalCaloriesForDay += calories;
-              totalProteinForDay += protein;
-              totalFatForDay += fat;
-              totalCarbsForDay += carbs;
-              totalFiberForDay += fiber;
-            }
-          } catch (mealError) {
-            if (mealError.response && mealError.response.status === 404) {
-            } else {
-              console.error(`Error fetching meal type ${mealType}:`, mealError.response ? mealError.response.data : mealError.message);
-            }
-          }
-        }
-
-        setCaloriesConsumed(totalCaloriesForDay);
-        setMacrosConsumed({
-          carbs: totalCarbsForDay,
-          protein: totalProteinForDay,
-          fat: totalFatForDay,
-          fiber: totalFiberForDay
-        });
-
+      const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
+      for (const mealType of mealTypes) {
         try {
-          const targetMacrosResponse = await axios.get(`${BASE_URL}/customer/calculate/newest`);
-          if (targetMacrosResponse.status === 200 && targetMacrosResponse.data) {
-            const data = targetMacrosResponse.data;
-            setTargetMacros({
-              carbs: data.carbs || 0,
-              protein: data.protein || 0,
-              fat: data.fat || 0,
-              fiber: data.fiber || 0,
-            });
-          } else {
-            console.warn("Không tìm thấy dữ liệu tính toán mục tiêu, sử dụng giá trị mặc định.");
-            setTargetMacros({ carbs: 0, protein: 0, fat: 0, fiber: 0 });
+          const mealResponse = await axios.get(`${BASE_URL}/meals/by-date`, {
+            params: { userId: apiUserId, date: selectedDate, mealType },
+            timeout: 10000,
+          });
+
+          if (mealResponse.status === 200 && mealResponse.data) {
+            const meal = mealResponse.data;
+            const { calories, protein, fat, carbs, fiber } = calculateMealNutrition(meal);
+            totalCaloriesForDay += calories;
+            totalProteinForDay += protein;
+            totalFatForDay += fat;
+            totalCarbsForDay += carbs;
+            totalFiberForDay += fiber;
           }
-        } catch (targetError) {
-          console.error('Error fetching target macros:', targetError.response ? targetError.response.data : targetError.message);
+        } catch (mealError) {
+          if (mealError.response && mealError.response.status === 404) {
+          } else {
+            console.error(`Error fetching meal type ${mealType}:`, mealError.response ? mealError.response.data : mealError.message);
+          }
+        }
+      }
+
+      setCaloriesConsumed(totalCaloriesForDay);
+      setMacrosConsumed({
+        carbs: totalCarbsForDay,
+        protein: totalProteinForDay,
+        fat: totalFatForDay,
+        fiber: totalFiberForDay
+      });
+
+      try {
+        const targetMacrosResponse = await axios.get(`${BASE_URL}/customer/calculate/newest`);
+        if (targetMacrosResponse.status === 200 && targetMacrosResponse.data) {
+          const data = targetMacrosResponse.data;
+          setTargetMacros({
+            carbs: data.carbs || 0,
+            protein: data.protein || 0,
+            fat: data.fat || 0,
+            fiber: data.fiber || 0,
+          });
+        } else {
           setTargetMacros({ carbs: 0, protein: 0, fat: 0, fiber: 0 });
         }
-
-      } catch (overallError) {
-        console.error('Overall error in fetchMealsAndCalculateTotals:', overallError.response ? overallError.response.data : overallError.message);
-        setCaloriesConsumed(0);
-        setMacrosConsumed({ carbs: 0, protein: 0, fat: 0, fiber: 0 });
+      } catch (targetError) {
         setTargetMacros({ carbs: 0, protein: 0, fat: 0, fiber: 0 });
-      } finally {
-        setLoading(false);
       }
-    };
-
-    if (selectedDate && apiUserId) {
-      fetchMealsAndCalculateTotals();
+    } catch (error) {
+      setLoading(false);
     }
-  }, [selectedDate, dailyCaloriesTarget, apiUserId]); 
+    setLoading(false);
+  };
 
-  useEffect(() => {
-    const fetchWaterData = async () => {
-      setIsLoadingWater(true);
-      try {
-        const res = await axios.get(`${BASE_URL}/water/water-data`, {
-          params: { date: selectedDate }
-        });
-        setWaterData(res.data);
-      } catch (error) {
-        console.log('Error fetching water data:', error);
-      } finally {
-        setIsLoadingWater(false);
+  const fetchWaterData = async () => {
+    setIsLoadingWater(true);
+    try {
+      const res = await axios.get(`${BASE_URL}/water/water-bydate`, {
+        params: { date: selectedDate }
+      });
+      setWaterData(res.data);
+      setWaterGoal(res.data.target || 2000);
+      setCurrentGlass(Math.floor((res.data.consumed || 0) / WATER_GLASS_VOLUME));
+    } catch (error) {
+      setWaterGoal(2000);
+      setCurrentGlass(0);
+      setWaterData({ consumed: 0, target: 2000, history: [] });
+      console.log('Error fetching water data:', error);
+    } finally {
+      setIsLoadingWater(false);
+    }
+  };
+
+  // Fetch when screen is focused (tab switch)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (apiUserId && selectedDate) {
+        fetchMealsAndCalculateTotals();
+        fetchWaterData();
       }
-    };
-    if (apiUserId && selectedDate) fetchWaterData();
+    }, [apiUserId, selectedDate])
+  );
+
+  // Fetch on first mount when apiUserId and selectedDate are ready
+  useEffect(() => {
+    if (apiUserId && selectedDate) {
+      fetchMealsAndCalculateTotals();
+      fetchWaterData();
+    }
   }, [apiUserId, selectedDate]);
 
   const handleGlassClick = async (index) => {
@@ -367,14 +375,6 @@ export default function HealthTrackingScreen() {
     saveWaterData(apiUserId, selectedDate, currentGlass, newGoal);
   };
 
-  const modifyWater = async (amount) => {
-    try {
-      const res = await axios.post(`${BASE_URL}/water/add-water`, { amount });
-      setWaterData(res.data);
-    } catch (error) {
-      console.log('Error updating water intake:', error);
-    }
-  };
 
   if (loading || !apiUserId) {
     return (

@@ -2,17 +2,18 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useAuth } from '../context/AuthProvider';
 
 export default function SettingScreen({ navigation }) {
   const [darkMode, setDarkMode] = useState(false);
+  const { logout } = useAuth();
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
 
-  const logout = async () => {
-    await AsyncStorage.removeItem('accessToken');
-    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  const logoutHandler = async () => {
+    await logout();
   };
 
 
@@ -45,7 +46,7 @@ export default function SettingScreen({ navigation }) {
         />
       </View>
 
-      <TouchableOpacity onPress={logout} style={styles.logoutButton}>
+      <TouchableOpacity onPress={logoutHandler} style={styles.logoutButton}>
         <Text style={styles.logoutText}>Đăng xuất</Text>
       </TouchableOpacity>
     </ScrollView>
