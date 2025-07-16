@@ -62,7 +62,7 @@ export default function InitialScreen({ navigation }) {
                 console.log('Đã update hồ sơ user thành công!');
             }
 
-            navigation.replace('TargetScreen');
+            navigation.replace('TargetInitialScreen');
         } catch (error) {
             Alert.alert('Lỗi', error.response?.data?.message || error.message);
         }

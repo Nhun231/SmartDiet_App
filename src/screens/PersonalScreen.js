@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -25,12 +25,12 @@ import { PUBLIC_SERVER_ENDPOINT } from '@env';
 const BASE_URL = PUBLIC_SERVER_ENDPOINT;
 
 function convertTo24Hour(time12h) {
-  // Expects "05:09 PM"
-  const [time, modifier] = time12h.split(' ');
-  let [hours, minutes] = time.split(':');
-  if (hours === '12') hours = '00';
-  if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
-  return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+    // Expects "05:09 PM"
+    const [time, modifier] = time12h.split(' ');
+    let [hours, minutes] = time.split(':');
+    if (hours === '12') hours = '00';
+    if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
 }
 
 export default function PersonalScreen({ route }) {
@@ -58,7 +58,7 @@ export default function PersonalScreen({ route }) {
                 if (res.data.report && res.data.report.length > 0) {
                     setWeightHistory(res.data.report);
                     setCurrentBMI(res.data.report[res.data.report.length - 1]);
-                    setWaterIntake((res.data.report[res.data.report.length - 1].waterIntake)*1000)
+                    setWaterIntake((res.data.report[res.data.report.length - 1].waterIntake) * 1000)
                 }
             } catch (error) {
                 console.log('Error fetching weight history:', error);
@@ -68,30 +68,30 @@ export default function PersonalScreen({ route }) {
     }, []);
 
     useEffect(() => {
-      const fetchWaterData = async () => {
-        setIsLoadingWater(true);
-        try {
-          const res = await axios.get(`${BASE_URL}/water/water-data`);
-          setWaterData(res.data);
-        } catch (error) {
-          console.log('Error fetching water data:', error);
-        } finally {
-          setIsLoadingWater(false);
-        }
-      };
-      fetchWaterData();
+        const fetchWaterData = async () => {
+            setIsLoadingWater(true);
+            try {
+                const res = await axios.get(`${BASE_URL}/water/water-data`);
+                setWaterData(res.data);
+            } catch (error) {
+                console.log('Error fetching water data:', error);
+            } finally {
+                setIsLoadingWater(false);
+            }
+        };
+        fetchWaterData();
     }, []);
 
     const modifyWater = async (amount) => {
-      if (amount < 0 && waterData.consumed < Math.abs(amount)) return; // Prevent negative total
-      try {
-        const res = await axios.post(`${BASE_URL}/water/add-water`,
-          { amount: Math.abs(amount) }, // backend expects positive amount
-        );
-        setWaterData(res.data);
-      } catch (error) {
-        console.log('Error updating water intake:', error);
-      }
+        if (amount < 0 && waterData.consumed < Math.abs(amount)) return; // Prevent negative total
+        try {
+            const res = await axios.post(`${BASE_URL}/water/add-water`,
+                { amount: Math.abs(amount) }, // backend expects positive amount
+            );
+            setWaterData(res.data);
+        } catch (error) {
+            console.log('Error updating water intake:', error);
+        }
     };
 
     const incrementWater = () => modifyWater(250);
@@ -161,10 +161,10 @@ export default function PersonalScreen({ route }) {
                             {plan.dailyCalories} calo/ngày
                         </Text>
                         <Text style={styles.safeNote}>Để an toàn, mức chênh lệch 500 calo là hợp lý.</Text>
-                        {plan.durationDays && (
+                        {typeof plan.durationDays === 'number' && plan.durationDays > 0 && (
                             <Text style={styles.planInfo}>Thời gian: {plan.durationDays} ngày</Text>
                         )}
-                        {plan.targetWeightChange && (
+                        {typeof plan.targetWeightChange === 'number' && plan.targetWeightChange > 0 && (
                             <Text style={styles.planInfo}>Số cân nặng cần thay đổi: {plan.targetWeightChange} kg</Text>
                         )}
                     </View>
@@ -223,30 +223,25 @@ export default function PersonalScreen({ route }) {
                             <Text style={styles.waterLabel}>Lượng nước bạn đã uống hôm nay</Text>
                             {/* Last water time */}
                             <Text style={styles.lastWaterTime}>
-                                Lần cuối uống nước: {Array.isArray(waterData.history) && waterData.history.length > 0 && waterData.date
-                                    ? (() => {
-                                        const last = waterData.history[0];
-                                        // Combine date and time, e.g., "2025-07-14 05:09 PM"
-                                        const [year, month, day] = waterData.date.split('-');
-                                        const [time, modifier] = last.time.split(' ');
-                                        let [hours, minutes] = time.split(':');
-                                        if (hours === '12') hours = '00';
-                                        if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
-                                        // Create a Date object in UTC
-                                        const utcDate = new Date(Date.UTC(
-                                          Number(year),
-                                          Number(month) - 1,
-                                          Number(day),
-                                          Number(hours),
-                                          Number(minutes)
-                                        ));
-                                        // Add 7 hours for GMT+7
-                                        const gmt7 = new Date(utcDate.getTime());
-                                        // Format as "HH:mm DD/MM/YYYY"
-                                        const pad = n => n.toString().padStart(2, '0');
-                                        return `${pad(gmt7.getHours())}:${pad(gmt7.getMinutes())} ${pad(gmt7.getDate())}/${pad(gmt7.getMonth() + 1)}/${gmt7.getFullYear()}`;
-                                    })()
-                                    : '--'}
+                                Lần cuối uống nước:{' '}
+                                <Text style={{ fontWeight: 'bold' }}>
+                                    {
+                                        Array.isArray(waterData.history) && waterData.history.length > 0 && waterData.date
+                                            ? (() => {
+                                                const last = waterData.history[0];
+                                                const [year, month, day] = waterData.date.split('-');
+                                                const [time, modifier] = last.time.split(' ');
+                                                let [hours, minutes] = time.split(':');
+                                                if (hours === '12') hours = '00';
+                                                if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+                                                const utcDate = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hours), Number(minutes)));
+                                                const gmt7 = new Date(utcDate.getTime());
+                                                const pad = n => n.toString().padStart(2, '0');
+                                                return `${pad(gmt7.getHours())}:${pad(gmt7.getMinutes())} ${pad(gmt7.getDate())}/${pad(gmt7.getMonth() + 1)}/${gmt7.getFullYear()}`;
+                                            })()
+                                            : '--'
+                                    }
+                                </Text>
                             </Text>
                             <View style={styles.waterControls}>
                                 <TouchableOpacity
