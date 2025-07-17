@@ -106,7 +106,7 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
       }
 
     } catch (error) {
-      console.error('Login error:', error);
+
       const errorMessage =
         error.response?.data?.message || 'Login failed. Please try again.';
       Alert.alert('Login Error', errorMessage);
@@ -127,17 +127,21 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <>
+    <View style={{ backgroundColor: '#00D4AA' }}>
       <StatusBar barStyle="light-content" backgroundColor="#00D4AA" />
-      <View style={styles.header}>
-        {/* Nút quay lại đã được thêm lại */}
-        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+      <SafeAreaView>
+       <View style={styles.header}>
+       
+        {/*<TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
           <Ionicons name="chevron-back" size={28} color="#000" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <Text style={styles.headerTitle}>Đăng nhập với email</Text>
         <View style={styles.headerSpacer} />
       </View>
-
+      </SafeAreaView>
+      </View>
+<SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -232,6 +236,7 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </>
   );
 }
 
@@ -243,14 +248,10 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#00D4AA',
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'start',
     paddingHorizontal: 16,
     paddingVertical: 16, // Adjusted for consistency
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   backButton: { // Giữ lại style này phòng trường hợp cần dùng lại
     padding: 4,
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
     marginRight: 36,
   },
   headerSpacer: {
-    width: 36,
+    width: 118,
   },
   keyboardAvoidingView: {
     flex: 1,

@@ -35,7 +35,7 @@ const AuthProvider = ({ children, initialAuth = null }) => {
             setAuth({ accessToken: storedToken, user: decodedUser });
             setIsLoggedIn(true);
           } catch (e) {
-            console.error("Invalid stored token", e);
+            console.log("Invalid stored token", e);
             await AsyncStorage.removeItem("accessToken");
             setIsLoggedIn(false);
           }

@@ -108,7 +108,7 @@ export default function CreateDishScreen() {
         try {
             const token = await AsyncStorage.getItem("accessToken");
             if (!token) {
-                console.error("Chưa đăng nhập");
+                console.log("Chưa đăng nhập");
                 return;
             }
 

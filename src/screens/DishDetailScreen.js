@@ -86,7 +86,6 @@ export default function DishDetailScreen({ route, navigation }) {
             } catch (err) {
                 
                 if (err.response?.status === 404) {
-                    console.log("Chưa có meal :", err);
                     // Tạo meal mới nếu chưa có
                     await axios.post(`${PUBLIC_SERVER_ENDPOINT}/meals`, {
                         mealType,
@@ -103,7 +102,7 @@ export default function DishDetailScreen({ route, navigation }) {
 
             navigation.goBack();
         } catch (err) {
-            console.error("Lỗi khi lấy token:", err.message);
+            console.log("Lỗi khi lấy token:", err.message);
         }
     };
 
@@ -113,7 +112,7 @@ export default function DishDetailScreen({ route, navigation }) {
             const response = await axios.get(`${PUBLIC_SERVER_ENDPOINT}/dish/${dish._id}`);
             setDishData(response.data);
         } catch (error) {
-            console.error("Lỗi khi lấy chi tiết món ăn:", error.message);
+            console.log("Lỗi khi lấy chi tiết món ăn:", error.message);
         }
     };
 

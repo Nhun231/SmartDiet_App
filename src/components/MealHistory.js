@@ -152,7 +152,7 @@ const MealHistory = ({ selectedDate }) => {
                 getMealsByDate(); 
               }
             } catch (deleteError) {
-              console.error("Lỗi khi xóa món ăn:", deleteError);
+              console.log("Lỗi khi xóa món ăn:", deleteError);
               Alert.alert("Lỗi xóa món ăn", deleteError.message);
             }
           }
@@ -208,7 +208,7 @@ const MealHistory = ({ selectedDate }) => {
                 getMealsByDate();
               }
             } catch (deleteError) {
-              console.error("Lỗi khi xóa thực phẩm:", deleteError);
+              console.log("Lỗi khi xóa thực phẩm:", deleteError);
               Alert.alert("Lỗi xóa thực phẩm", deleteError.message);
             }
           }

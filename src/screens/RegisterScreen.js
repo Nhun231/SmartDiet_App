@@ -214,7 +214,7 @@ export default function RegisterScreen({ navigation }) {
         Alert.alert("Lỗi", "Đăng ký thất bại. Vui lòng thử lại.");
       }
     } catch (error) {
-      console.error('Registration error:', error);
+
       if (error.response) {
         if (error.response.status === 400) {
           const backendMessage = error.response.data.message;
@@ -248,14 +248,18 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#00D4AA" />
-      
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Đăng ký tài khoản</Text>
-        <View style={styles.headerSpacer} />
-      </View>
-
+    
+   <>
+    <View style={{ backgroundColor: '#00D4AA' }}>
+  <StatusBar barStyle="light-content" backgroundColor="#00D4AA" />
+  <SafeAreaView>
+    <View style={styles.header}>
+      <Text style={styles.headerTitle}>Đăng ký tài khoản</Text>
+      <View style={styles.headerSpacer} />
+    </View>
+  </SafeAreaView>
+</View>
+<SafeAreaView style={styles.container}>
       <KeyboardAvoidingView 
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -439,6 +443,7 @@ export default function RegisterScreen({ navigation }) {
         cancelTextIOS="Hủy" // Custom cancel button text for iOS
       />
     </SafeAreaView>
+    </> 
   );
 }
 
@@ -454,10 +459,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   headerTitle: {
     flex: 1,

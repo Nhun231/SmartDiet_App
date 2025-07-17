@@ -161,10 +161,10 @@ export default function PersonalScreen({ route }) {
                             {plan.dailyCalories} calo/ngày
                         </Text>
                         <Text style={styles.safeNote}>Để an toàn, mức chênh lệch 500 calo là hợp lý.</Text>
-                        {plan.durationDays && (
+                        {typeof plan.durationDays === 'number' && plan.durationDays > 0 && (
                             <Text style={styles.planInfo}>Thời gian: {plan.durationDays} ngày</Text>
                         )}
-                        {plan.targetWeightChange && (
+                        {typeof plan.targetWeightChange === 'number' && plan.targetWeightChange > 0 && (
                             <Text style={styles.planInfo}>Số cân nặng cần thay đổi: {plan.targetWeightChange} kg</Text>
                         )}
                     </View>
@@ -286,11 +286,6 @@ export default function PersonalScreen({ route }) {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
-
-            {/* Floating Action Button */}
-            <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
-                <Ionicons name="add" size={24} color="white" />
-            </TouchableOpacity>
             {/* Weight Update Modal */}
             <Modal
                 visible={modalVisible}

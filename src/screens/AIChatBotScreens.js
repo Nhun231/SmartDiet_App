@@ -62,7 +62,7 @@ export default function SmartDietChatbot({ navigation }) {
             };
             setMessages((prev) => [...prev, reply]);
         } catch (err) {
-            console.error("Error sending message:", err.message);
+            console.log("Error sending message:", err.message);
             const errorReply = {
                 id: Date.now().toString() + "-error",
                 role: "assistant",

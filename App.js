@@ -18,6 +18,7 @@ import PickIngredientScreen from './src/screens/PickIngredientScreen.js'
 import MealEntryScreen from './src/screens/MealEntryScreen.js'; // import mới
 import InitialCalculateScreen from './src/screens/InitialCalculateScreen';
 import StartupScreen from './src/screens/StartupScreen';
+import TargetInitialScreen from './src/screens/TargetInitialScreen.js'
 
 const Stack = createNativeStackNavigator();
 
@@ -71,6 +72,7 @@ function AppWithAuth() {
                     options={{ title: 'Chi tiết nguyên liệu' }}
                 />
                 <Stack.Screen name="InitialCalculateScreen" component={InitialCalculateScreen} />
+              <Stack.Screen name="TargetInitialScreen" component={TargetInitialScreen} />
               </>
                 ) : (
                   <>

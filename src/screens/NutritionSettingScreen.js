@@ -32,7 +32,7 @@ export default function NutritionSettingScreen({ navigation }) {
                     setFiber(data.nutrition?.fiberPercent || 5);
                     setTdee(data.tdee || 2000);
                 } catch (err) {
-                    console.error(err);
+                    console.log(err);
                     Alert.alert('Lỗi', 'Không thể tải dữ liệu dinh dưỡng');
                 }
             };
@@ -59,7 +59,7 @@ export default function NutritionSettingScreen({ navigation }) {
                 { text: 'OK', onPress: () => navigation.goBack() },
             ]);
         } catch (err) {
-            console.error(err);
+            console.log(err);
             Alert.alert('Lỗi', err.response?.data?.message || 'Lỗi khi lưu cài đặt');
         }
     };

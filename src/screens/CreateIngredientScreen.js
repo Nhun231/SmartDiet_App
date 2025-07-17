@@ -73,7 +73,7 @@ export default function CreateIngredientScreen() {
 
             navigation.goBack();
         } catch (error) {
-            console.error("Lỗi khi lưu nguyên liệu:", error.response?.data || error.message);
+            console.log("Lỗi khi lưu nguyên liệu:", error.response?.data || error.message);
         }
     };
 

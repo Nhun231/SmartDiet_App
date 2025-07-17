@@ -69,7 +69,7 @@ export default function MealEntryScreen() {
             setIngredients(userIngredients);
             setDishes(dishRes.data);
         } catch (error) {
-            console.error('Lỗi khi lấy dữ liệu:', error.message);
+            console.log('Lỗi khi lấy dữ liệu:', error.message);
         } finally {
             setLoading(false);
         }
@@ -128,6 +128,8 @@ export default function MealEntryScreen() {
                 }
             }
 
+            console.log('Updating meal with:', { ingredients: updatedIngredients, dishes: updatedDishes });
+
             await axios.put(`${PUBLIC_SERVER_ENDPOINT}/meals/${existingMeal._id}`, {
                 userId,
                 mealType,
@@ -143,9 +145,10 @@ export default function MealEntryScreen() {
             });
 
         } catch (err) {
+            console.log('Error details:', err.response?.status, err.response?.data, err.message);
             if (err.response?.status === 404) {
                 // Tạo mới meal
-                await axios.post(`${PUBLIC_SERVER_ENDPOINT}/meals`, {
+                const newMealData = {
                     userId,
                     mealType,
                     date: formattedDate,
@@ -155,9 +158,14 @@ export default function MealEntryScreen() {
                     dish: selectedItem.ingredients
                         ? [{ dishId: selectedItem._id, quantity }]
                         : [],
-                });
+                };
+                
+                console.log('Creating new meal with:', newMealData);
+                
+                await axios.post(`${PUBLIC_SERVER_ENDPOINT}/meals`, newMealData);
+                console.log('New meal created successfully');
             } else {
-                console.error("Lỗi khi thêm vào meal:", err.message);
+                console.log("Lỗi khi thêm vào meal:", err.message);
             }
         } finally {
             setQuantityModalVisible(false);

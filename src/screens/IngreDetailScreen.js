@@ -112,10 +112,10 @@ export default function IngredientDetailScreen({ route, navigation }) {
                     await axios.post(`${PUBLIC_SERVER_ENDPOINT}/meals`, newMeal);
                     console.log("Đã tạo nhật ký mới!");
                 } catch (createErr) {
-                    console.error("Lỗi khi tạo nhật ký:", createErr.message);
+                    console.log("Lỗi khi tạo nhật ký:", createErr.message);
                 }
             } else {
-                console.error("Lỗi khi kiểm tra meal:", err.message);
+                console.log("Lỗi khi kiểm tra meal:", err.message);
             }
         }
 
@@ -131,7 +131,7 @@ export default function IngredientDetailScreen({ route, navigation }) {
             const res = await axios.get(`${PUBLIC_SERVER_ENDPOINT}/ingredients/${ingredient._id}`);
             setData(res.data);
         } catch (err) {
-            console.error("Lỗi fetch lại nguyên liệu:", err.message);
+            console.log("Lỗi fetch lại nguyên liệu:", err.message);
         }
     };
 

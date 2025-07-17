@@ -54,7 +54,7 @@ export default function FavouriteScreen() {
             console.log("Đã gọi xong API, dữ liệu trả về:", userIngredients);
 
         } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu nguyên liệu:", error.message);
+            console.log("Lỗi khi lấy dữ liệu nguyên liệu:", error.message);
         } finally {
             setLoading(false);
         }
@@ -72,7 +72,7 @@ export default function FavouriteScreen() {
             setDishes(response.data);
             console.log("Dishes fetched:", response.data);
         } catch (error) {
-            console.error("Lỗi khi lấy dish:", error.message);
+            console.log("Lỗi khi lấy dish:", error.message);
         } finally {
             setLoading(false);
         }
@@ -98,7 +98,7 @@ export default function FavouriteScreen() {
             setIngredients((prev) => prev.filter((item) => item._id !== ingredientId));
             console.log("Xoá thành công nguyên liệu:", ingredientId);
         } catch (error) {
-            console.error("Lỗi khi xoá nguyên liệu:", error.response?.data || error.message);
+            console.log("Lỗi khi xoá nguyên liệu:", error.response?.data || error.message);
         }
     };
     const handleDeleteDish = async (dishId) => {
@@ -111,7 +111,7 @@ export default function FavouriteScreen() {
             setDishes((prev) => prev.filter((item) => item._id !== dishId));
             console.log("Xoá thành công nguyên liệu:", dishId);
         } catch (error) {
-            console.error("Lỗi khi xoá nguyên liệu:", error.response?.data || error.message);
+            console.log("Lỗi khi xoá nguyên liệu:", error.response?.data || error.message);
         }
     };
 

@@ -11,6 +11,17 @@ import axios from 'axios';
 import MealHistory from '../components/MealHistory';
 import { useFocusEffect } from '@react-navigation/native';
 
+// Utility function to get current date in GMT+7
+const getCurrentDateGMT7 = () => {
+  const now = new Date();
+  // Get current time in GMT+7
+  const gmt7Time = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+  const year = gmt7Time.getUTCFullYear();
+  const month = String(gmt7Time.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(gmt7Time.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const { width } = Dimensions.get('window');
 
 import { PUBLIC_SERVER_ENDPOINT } from '@env';
@@ -81,8 +92,7 @@ export default function HealthTrackingScreen() {
   const [currentGlass, setCurrentGlass] = useState(0);
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    return getCurrentDateGMT7();
   });
   const [dailyCaloriesTarget, setDailyCaloriesTarget] = useState(0);
   const [caloriesConsumed, setCaloriesConsumed] = useState(0);
@@ -114,7 +124,7 @@ export default function HealthTrackingScreen() {
       await AsyncStorage.setItem(`@dailyWater:${userId}:${date}`, dataToSave);
       console.log(`Water data saved for ${userId} on ${date}: ${currentGlassesFilled} glasses, goal ${goal}ml`);
     } catch (e) {
-      console.error("Error saving water data: ", e);
+      console.log("Error saving water data: ", e);
     }
   };
 
@@ -136,18 +146,13 @@ export default function HealthTrackingScreen() {
         setCurrentGlass(0);
       }
     } catch (e) {
-      console.error("Error loading water data: ", e);
+      console.log("Error loading water data: ", e);
       setWaterGoal(2000);
       setCurrentGlass(0);
     }
   };
 
-  useEffect(() => {
-    if (selectedDate && apiUserId) {
-      loadWaterData(apiUserId, selectedDate);
-    }
-  }, [selectedDate, apiUserId]);
-
+  // Remove AsyncStorage water tracking - use only backend API
   useEffect(() => {
     const maxGlasses = Math.ceil(waterGoal / WATER_GLASS_VOLUME);
     const newWaterGlasses = Array(maxGlasses).fill(false);
@@ -155,21 +160,14 @@ export default function HealthTrackingScreen() {
       newWaterGlasses[i] = true;
     }
     setWaterGlasses(newWaterGlasses);
-
-    if (saveWaterTimeoutRef.current) {
-      clearTimeout(saveWaterTimeoutRef.current);
-    }
-    saveWaterTimeoutRef.current = setTimeout(() => {
-      saveWaterData(apiUserId, selectedDate, currentGlass, waterGoal);
-    }, 500);
-  }, [waterGoal, currentGlass, selectedDate, apiUserId]);
+  }, [waterGoal, currentGlass]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = await AsyncStorage.getItem('accessToken');
         if (!token) {
-          console.error("Token không tồn tại.");
+          console.log("Token không tồn tại.");
           setLoading(false);
           return;
         }
@@ -178,7 +176,7 @@ export default function HealthTrackingScreen() {
           const decodedToken = JSON.parse(atob(token.split('.')[1]));
           setApiUserId(decodedToken.id);
         } catch (decodeError) {
-          console.error("Lỗi giải mã token:", decodeError);
+          console.log("Lỗi giải mã token:", decodeError);
           setLoading(false);
           return;
         }
@@ -192,7 +190,7 @@ export default function HealthTrackingScreen() {
           setDailyCaloriesTarget(data.dailyCalories);
         }
       } catch (error) {
-        console.error('Error fetching diet plan:', error);
+        console.log('Error fetching diet plan:', error);
       } finally {
       }
     };
@@ -235,7 +233,7 @@ export default function HealthTrackingScreen() {
         } catch (mealError) {
           if (mealError.response && mealError.response.status === 404) {
           } else {
-            console.error(`Error fetching meal type ${mealType}:`, mealError.response ? mealError.response.data : mealError.message);
+            console.log(`Error fetching meal type ${mealType}:`, mealError.response ? mealError.response.data : mealError.message);
           }
         }
       }
@@ -273,8 +271,13 @@ export default function HealthTrackingScreen() {
   const fetchWaterData = async () => {
     setIsLoadingWater(true);
     try {
+      // Always fetch water data for today (GMT+7), regardless of selectedDate
+      const todayString = getCurrentDateGMT7();
+      
+      console.log('Fetching water data for today (GMT+7):', todayString);
+      
       const res = await axios.get(`${BASE_URL}/water/water-bydate`, {
-        params: { date: selectedDate }
+        params: { date: todayString }
       });
       setWaterData(res.data);
       setWaterGoal(res.data.target || 2000);
@@ -308,19 +311,32 @@ export default function HealthTrackingScreen() {
   }, [apiUserId, selectedDate]);
 
   const handleGlassClick = async (index) => {
-    if (selectedDate !== new Date().toISOString().split('T')[0]) return;
+    // Only allow water tracking for today (GMT+7)
+    const todayString = getCurrentDateGMT7();
+    
+    if (selectedDate !== todayString) {
+      console.log('Water tracking only allowed for today');
+      return;
+    }
+    
     const WATER_GLASS_VOLUME = 250;
     const desiredConsumed = (index + 1) * WATER_GLASS_VOLUME;
-    if (desiredConsumed > waterData.consumed) {
-      const amountToAdd = desiredConsumed - waterData.consumed;
+    
+    // Always update water intake when clicking on a glass
+    const amountToAdd = desiredConsumed - waterData.consumed;
+    
+    if (amountToAdd > 0) {
       try {
+        console.log('Adding water:', amountToAdd, 'ml');
         const res = await axios.post(`${BASE_URL}/water/add-water`, { amount: amountToAdd });
         setWaterData(res.data);
+        console.log('Water updated successfully:', res.data);
       } catch (error) {
         console.log('Error updating water intake:', error);
       }
+    } else {
+      console.log('No water to add or trying to remove water');
     }
-    // Do nothing if clicking on a filled or previous glass (no removal)
   };
 
   const getDateLabel = () => {
@@ -372,7 +388,7 @@ export default function HealthTrackingScreen() {
     if (currentGlass > maxGlassesForNewGoal) {
       setCurrentGlass(maxGlassesForNewGoal);
     }
-    saveWaterData(apiUserId, selectedDate, currentGlass, newGoal);
+    // Water goal is managed by the backend, no need to save to AsyncStorage
   };
 
 
@@ -387,6 +403,8 @@ export default function HealthTrackingScreen() {
   const caloriesRemaining = Math.max(0, dailyCaloriesTarget - caloriesConsumed);
 
   return (
+      <>
+      <ScrollView style={styles.scrollViewContent}>
     <SafeAreaView style={{ flex: 1, backgroundColor: '#3ECF8C' }}>
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#3ECF8C" />
@@ -412,7 +430,7 @@ export default function HealthTrackingScreen() {
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => {
-                      const today = new Date().toISOString().split('T')[0];
+                      const today = getCurrentDateGMT7();
                       if (selectedDate !== today) {
                         setSelectedDate(today);
                       }
@@ -475,7 +493,7 @@ export default function HealthTrackingScreen() {
             </View>
           </View>
         </LinearGradient>
-      <ScrollView style={styles.scrollViewContent}>
+
         <View style={styles.waterSection}>
           <View style={styles.waterHeader}>
             <Text style={styles.waterTitle}>Bạn đã uống bao nhiêu nước</Text>
@@ -494,7 +512,7 @@ export default function HealthTrackingScreen() {
                   <TouchableOpacity
                     style={styles.waterGlass}
                     onPress={() => handleGlassClick(index)}
-                    disabled={selectedDate !== new Date().toISOString().split('T')[0]}
+                    disabled={selectedDate !== getCurrentDateGMT7()}
                   >
                     <WaterGlassIcon filled={index < filledGlasses} />
                   </TouchableOpacity>
@@ -505,9 +523,7 @@ export default function HealthTrackingScreen() {
         </View>
 
         <MealHistory selectedDate={selectedDate} userId={apiUserId} />
-      </ScrollView>
 
-      <FloatingActionMenu onSelect={handleFloatingAction} />
 
       <Modal
         animationType="slide"
@@ -572,6 +588,8 @@ export default function HealthTrackingScreen() {
       </Modal>
     </View>
     </SafeAreaView>
+      </ScrollView>
+</>
   );
 }
 

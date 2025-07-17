@@ -31,8 +31,8 @@ export default function TargetScreen({ navigation }) {
 
     const adjustWeight = (amount) => {
         const newWeight = targetWeight + amount;
-            setTargetWeight(newWeight);
-            setInputText(newWeight.toString());
+        setTargetWeight(newWeight);
+        setInputText(newWeight.toString());
     };
 
     const handleSelect = (target) => {
@@ -50,15 +50,23 @@ export default function TargetScreen({ navigation }) {
                 goal: goalValue,
                 targetWeightChange: weightChange,
             });
-            navigation.getParent()?.navigate('PersonalTab', { plan: res.data });
+
+            navigation.navigate('Main', {
+                screen: 'PersonalTab',
+                params: { plan: res.data }
+            });
         } catch (error) {
-            if (error.response && error.response.status === 404) {
+            if (error.response?.status === 404) {
                 try {
                     const resCreate = await axios.post(`${BASE_URL}/customer/dietplan/create`, {
                         goal: goalValue,
                         targetWeightChange: weightChange,
                     });
-                    navigation.getParent()?.navigate('PersonalTab', { plan: resCreate.data });
+
+                    navigation.navigate('Main', {
+                        screen: 'PersonalTab',
+                        params: { plan: resCreate.data }
+                    });
                 } catch (errCreate) {
                     Alert.alert('Lỗi', errCreate.response?.data?.message || 'Lỗi khi tạo mới kế hoạch');
                 }
@@ -69,10 +77,20 @@ export default function TargetScreen({ navigation }) {
     };
 
 
+
     return (
         <ScrollView style={styles.container}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <TouchableOpacity
+                    onPress={() => {
+                        if (navigation.canGoBack()) {
+                            navigation.goBack();
+                        } else {
+                            navigation.navigate('Main');
+                        }
+                    }}
+                    style={styles.backButton}
+                >
                     <Icon name="arrow-left" size={24} color="#fff" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Mục tiêu</Text>

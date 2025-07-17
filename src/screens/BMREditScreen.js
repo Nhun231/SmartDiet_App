@@ -34,7 +34,7 @@ export default function BMREditScreen({ navigation }) {
             setActivity(data.activity || 'Vừa');
             setTdee(data.tdee || '');
         } catch (error) {
-            console.error('Error fetching user data:', error);
+            console.log('Error fetching user data:', error);
             Alert.alert('Lỗi', 'Không thể lấy dữ liệu hồ sơ.');
         }
     };
@@ -75,7 +75,7 @@ export default function BMREditScreen({ navigation }) {
 
             Alert.alert('Thành công', 'Đã lưu hồ sơ thành công!');
         } catch (error) {
-            console.error('API error:', error);
+            console.log('API error:', error);
             Alert.alert('Lỗi', error.response?.data?.message || error.message);
         }
     };

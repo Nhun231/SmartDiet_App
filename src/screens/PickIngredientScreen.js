@@ -50,7 +50,7 @@ export default function PickIngredientScreen() {
 
                 setIngredients(filtered);
             } catch (err) {
-                console.error("Lỗi khi tải nguyên liệu:", err.message);
+                console.log("Lỗi khi tải nguyên liệu:", err.message);
             } finally {
                 setLoading(false);
             }
